@@ -12,7 +12,7 @@ import os
 from tensorboardX import SummaryWriter
 from torch.autograd import Variable
 from torchsummary import summary
-from data_reader import get_data_sets
+from data_reader_isic import get_data_sets
 from utils import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

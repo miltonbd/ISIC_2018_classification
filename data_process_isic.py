@@ -1,6 +1,6 @@
-from data_reader import *
+from data_reader_isic import *
 from PIL import Image
-from statics import *
+from statics_isic import *
 
 
 def read_train_data_from_csv():

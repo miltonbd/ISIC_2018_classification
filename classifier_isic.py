@@ -12,10 +12,10 @@ import os
 from tensorboardX import SummaryWriter
 from torch.autograd import Variable
 from torchsummary import summary
-from data_reader import get_data_sets
+from data_reader_isic import get_data_sets
 from utils import *
 from torch.backends import cudnn
-from augment_data import augment_images
+from augment_data_isic import augment_images
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Classifier(object):
@@ -93,7 +93,7 @@ class Classifier(object):
         total = 0
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
             step = epoch * len(self.trainloader) + batch_idx
-            inputs=torch.from_numpy(augment_images(inputs.numpy()))
+            # inputs=torch.from_numpy(augment_images(inputs.numpy()))
             inputs=inputs.type(torch.FloatTensor).cuda(async=True)
 
             optimizer.zero_grad()

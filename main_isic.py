@@ -1,15 +1,18 @@
 import os
 from torch import nn,optim
 import torchvision
-from classifier import Classifier
+from classifier_isic import Classifier
 from pretrainedmodels.models.inceptionv4 import  inceptionv4
-from augment_data import augment_images
-
+from augment_data_isic import augment_images
+import time
 """
 We trained an Inception V3 network for the three class task. 
 The overall classification accuracy is 0.65. Class-wise accuracy is 0.72 (Positive),  0.60 (Neutral) and 0.60 (Negative).
 sudo nvidia-smi -i 0 -pl 180
 """
+# import  os
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 class ModelDetailsInceptionV4(object):
 
@@ -38,8 +41,8 @@ class ModelDetailsInceptionV4(object):
                             params.requires_grad = False
 
         self.model= model
-        self.learning_rate = 0.01
-        self.epsilon=1e-8
+        self.learning_rate = 0.001
+        self.epsilon=1
         self.optimizer = "adam"
         self.model_name_str = "inceptionv4"
         self.batch_size_train=100
@@ -57,6 +60,7 @@ clasifier.load_model()
 for epoch in range(clasifier.start_epoch, clasifier.start_epoch + model_details.epochs):
     try:
       clasifier.train(epoch)
+      time.sleep(2)
       clasifier.test(epoch)
     except KeyboardInterrupt:
       clasifier.test(epoch)
