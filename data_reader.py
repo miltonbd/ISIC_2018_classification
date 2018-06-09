@@ -7,42 +7,39 @@ from statics import *
 import glob
 from PIL import Image
 import os
+import threading
 
 def get_data(files):
-    images=[]
-    labels=[]
-
+    data=[]
     for img in files:
-        images.append(img)
+        row=[img]
         if 'Positive' in img:
-            labels.append(0)
+            row.append(0)
         elif 'Negative' in img:
-            labels.append(1)
+            row.append(1)
         else:
-            labels.append(2)
-
-    print('images:{}'.format(len(images)))
-    return (images,labels)
+            row.append(2)
+        data.append(row)
+    return data
 def get_train_data():
-    files=glob.glob('./Train_256/**/**.jpg')
+    files=glob.glob(os.path.join(data_dir,'Train_256/**/**.jpg'))
+    files=np.repeat(files,5,0)
     return get_data(files)
 
 def get_validation_data():
-    files=glob.glob('./Validation_256/**/**.jpg')
+    files=glob.glob(os.path.join(data_dir, 'Validation_256/**/**.jpg'))
     return get_data(files)
 
 class DatasetReader(Dataset):
     """
-    task1 =melanoma
-    task2=sebrorreheic
-    mode= train, validation, test
     """
-    def __init__(self, images, labels,mode='train',):
+    def __init__(self, data,mode='train',):
+        print("{} count:{}".format(mode,len(data)))
         self.mode=mode
-        self.images=images
-        self.labels=labels
+        self.data=np.asarray(data)
         self.transform_train_image=transforms.Compose([
             transforms.RandomCrop([224,224]),
+            transforms.RandomHorizontalFlip(),
             transforms.ToTensor()]);
         self.transform_test_image = transforms.Compose([
             transforms.Resize([224, 224]),
@@ -50,42 +47,34 @@ class DatasetReader(Dataset):
 
 
     def __getitem__(self, index):
-        img = Image.open(self.images[index])
-        if self.mode=="train":
-            if not os.path.exists(self.images[index]):
-                print("{} image not found".format(self.images[index]))
-                exit(0);
+        img_path=self.data[index,0]
+        label=int(self.data[index,1])
 
+        if not os.path.exists(img_path):
+            print("{} image not found".format(img_path))
+            exit(0);
+        img = Image.open(img_path)
+        if self.mode=="train":
             data = self.transform_train_image(img)
-            label = self.labels[index]
-            return (data, label)
+            return data, label
 
         elif self.mode=="valid":
-            if not os.path.exists(self.images[index]):
-                print("{} image not found".format(self.images[index]))
-                exit(0);
-
-            label = self.labels[index]
             data = self.transform_test_image(img)
-            return (data, label)
-
+            return data, label
 
     def __len__(self):
-        return len(self.images)
+        return len(self.data)
 
-def get_data_sets(model_details):
-    augmentor=model_details.augmentor
-    images, labels=get_train_data()
-    train_data_set = DatasetReader(images, labels ,"train")
-    validation_data_set = DatasetReader( *get_validation_data(),"valid")
-    return (train_data_set, validation_data_set)
+def get_data_sets(batch_size1, batch_size2):
+    train_data_set = DatasetReader(get_train_data(),"train")
+    validation_data_set = DatasetReader(get_validation_data(),"valid")
+    trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=batch_size1, shuffle=True,
+                                              num_workers=2)
+    valloader = torch.utils.data.DataLoader(validation_data_set, batch_size=batch_size2, shuffle=False,
+                                              num_workers=2)
+    return (trainloader, valloader)
 
-if __name__ == '__main__':
-    train_images, train_labels=get_validation_data()
-    trainset=DatasetReader(train_images, train_labels,"valid")
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=100, shuffle=True,
-                                                   num_workers=2)
-    for idx,(images,labels) in enumerate(trainloader):
-        print(images.shape)
-
-
+def test():
+    trainloader, valloader = get_data_sets(100)
+    for idx, (inputs, targets) in enumerate(valloader):
+        print(inputs.shape)

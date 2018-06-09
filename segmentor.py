@@ -14,8 +14,7 @@ from torch.autograd import Variable
 from torchsummary import summary
 from data_reader import get_data_sets
 from utils import *
-from torch.backends import cudnn
-from augment_data import augment_images
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Classifier(object):
@@ -40,10 +39,13 @@ class Classifier(object):
         # Data
         print('==> Preparing data..')
 
-        self.trainloader, self.testloader = get_data_sets(self.model_details.batch_size_train,self.model_details.batch_size_test )
+        trainset, validationset = get_data_sets(self.model_details)
+        self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.model_details.batch_size, shuffle=True,
+                                                  num_workers=2)
+        self.testloader = torch.utils.data.DataLoader(validationset, batch_size=self.model_details.batch_size, shuffle=False, num_workers=2)
 
-        train_count = len(self.trainloader) * self.model_details.batch_size_train
-        test_count = len(self.testloader) * self.model_details.batch_size_test
+        train_count = len(self.trainloader) * self.model_details.batch_size
+        test_count = len(self.testloader) * self.model_details.batch_size
         print('==> Total examples, train: {}, test:{}'.format(train_count, test_count))
 
     def load_model(self):
@@ -60,12 +62,12 @@ class Classifier(object):
             print('==> Resuming from checkpoint..')
             assert (os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!')
             checkpoint = torch.load('./checkpoint/{}_ckpt.t7'.format(self.model_name_str ))
-            model = checkpoint['model']
+            model = checkpoint['net']
             self.best_acc = checkpoint['acc']
             self.start_epoch = checkpoint['epoch']
         except Exception as e:
             model = model_details.model
-            print('==> Resume Failed and Building model..')
+            print('==> Building model..')
 
 
         if self.use_cuda:
@@ -74,14 +76,14 @@ class Classifier(object):
             cudnn.benchmark = True
         self.model=model
 
-        # summary(model, (3, 224, 224))
+        summary(model, (3, 224, 224))
         self.criterion = nn.CrossEntropyLoss()
 
         if model_details.optimizer=="adam":
-            self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=self.learning_rate, eps=model_details.epsilon)
+            self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=self.learning_rate, eps=model_details.eps)
 
         self.writer.add_scalar("leanring rate", self.learning_rate)
-        self.writer.add_scalar("epsilon", model_details.epsilon)
+        self.writer.add_scalar("eps", model_details.eps)
 
     def train(self, epoch):
         print('\n Training Epoch:{} '.format(epoch))
@@ -93,13 +95,12 @@ class Classifier(object):
         total = 0
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
             step = epoch * len(self.trainloader) + batch_idx
-            inputs=torch.from_numpy(augment_images(inputs.numpy()))
-            inputs=inputs.type(torch.FloatTensor).cuda(async=True)
+            if self.use_cuda:
+                inputs, targets = inputs.cuda(), targets.cuda()
+                inputs1, targets1 = inputs.cuda(1), targets.cuda(1)
 
             optimizer.zero_grad()
-            inputs = Variable(inputs, requires_grad=True).cuda()
-            targets = Variable(targets, requires_grad=False).cuda()
-
+            inputs, targets = Variable(inputs), Variable(targets)
             outputs = model(inputs)
             loss = self.criterion(outputs, targets)
             loss.backward()
@@ -143,10 +144,8 @@ class Classifier(object):
         print("\ntesting with previous accuracy {}".format(self.best_acc))
         for batch_idx, (inputs, targets) in enumerate(self.testloader):
             if self.use_cuda:
-                inputs = inputs.cuda()
-                targets=np.asarray(targets).astype(np.int64)
-                targets=torch.from_numpy(targets).cuda()
-            inputs, targets = Variable(inputs), Variable(targets)
+                inputs, targets = inputs.cuda(), targets.cuda()
+            inputs, targets = Variable(inputs, volatile=True), Variable(targets)
             outputs = model(inputs)
             loss = self.criterion(outputs, targets)
 
