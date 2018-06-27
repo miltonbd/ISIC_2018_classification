@@ -14,10 +14,6 @@ sudo nvidia-smi -pl 180
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-num_classes=10
-
-transforms_train = transforms.Compose([transforms.CenterCrop(32), transforms.ToTensor()])
-transforms_test = transforms.Compose([transforms.CenterCrop(32), transforms.ToTensor()])
 
 def get_inception_v4_model():
     model = inceptionv4()
