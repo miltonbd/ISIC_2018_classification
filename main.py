@@ -60,7 +60,7 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
-trainloader,testloader = get_data_loaders(200,transform_train, transform_test)
+trainloader,testloader = get_data_loaders(200)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
