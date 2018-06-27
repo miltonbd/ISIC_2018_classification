@@ -13,13 +13,9 @@ from data_reader_cifar import *
 from classifier import Classifier
 from torch import optim
 
-
 """
 sudo nvidia-smi -pl 180
 """
-# import  os
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def get_inception_v4_model():
     model = inceptionv4()
@@ -62,7 +58,6 @@ def get_vgg_model():
 def get_model():
     return get_vgg_model()
 
-
 def get_optimizer(classifier):
     learning_rate=0.001
     epsilon=1e-8
@@ -74,9 +69,6 @@ class ModelDetailsInceptionV4(object):
     def __init__(self):
 
         self.model= get_model()
-        self.learning_rate = 0.001
-        self.epsilon=1
-        self.optimizer = "adam"
         self.model_name_str = "inceptionv4"
         self.batch_size=100
         self.epochs = 200
@@ -85,7 +77,6 @@ class ModelDetailsInceptionV4(object):
         self.dataset_loader=get_data_loader(self.batch_size)
         self.criterion = nn.CrossEntropyLoss()
         self.get_optimizer = get_optimizer
-        #
 
 model_details=ModelDetailsInceptionV4()
 model_details.model_name= "inceptionv4"

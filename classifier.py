@@ -68,21 +68,18 @@ class Classifier(object):
 
     def load_model(self):
         model_details=self.model_details
-        self.learning_rate=model_details.learning_rate
         model_name = model_details.model_name
         model_name_str = model_details.model_name_str
         print('\n==> using model {}'.format(model_name_str))
         self.model_name_str="{}".format(model_name_str)
-
         model = model_details.model
-
         # Model
         try:
             # Load checkpoint.
             print('==> Resuming from checkpoint..')
             assert (os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!')
             checkpoint = torch.load('./checkpoint/{}_ckpt.t7'.format(self.model_name_str ))
-            model = checkpoint['model']
+            model.load_state_dict(checkpoint['model'].state_dict())
             self.best_acc = checkpoint['acc']
             self.start_epoch = checkpoint['epoch']
         except Exception as e:
