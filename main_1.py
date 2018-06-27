@@ -9,7 +9,8 @@ from models.vgg import vgg19_bn
 from augment_data_isic import augment_images
 import time
 from torchvision import transforms
-from data_reader_cifar import *
+# from data_reader_cifar import *
+from data_reader_isic import *
 from classifier import Classifier
 from torch import optim
 
@@ -45,7 +46,7 @@ def get_inception_v4_model():
 def get_vgg_model():
     model=vgg19_bn(True)
     model.classifier = nn.Sequential(
-        nn.Linear(512, 4096),
+        nn.Linear(25088, 4096),
         nn.ReLU(True),
         nn.Dropout(),
         nn.Linear(4096, 4096),
@@ -70,13 +71,14 @@ class ModelDetailsInceptionV4(object):
 
         self.model= get_model()
         self.model_name_str = "inceptionv4"
-        self.batch_size=100
+        self.batch_size=40
         self.epochs = 200
         self.logs_dir  = "logs/inceptionv4/no_aug"
         self.augmentor = augment_images
         self.dataset_loader=get_data_loader(self.batch_size)
         self.criterion = nn.CrossEntropyLoss()
         self.get_optimizer = get_optimizer
+        self.dataset=data_set_name
 
 model_details=ModelDetailsInceptionV4()
 model_details.model_name= "inceptionv4"

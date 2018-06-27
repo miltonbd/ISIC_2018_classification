@@ -8,7 +8,8 @@ import glob
 from PIL import Image
 import os
 import threading
-
+num_classes=7
+data_set_name="ISIC 2018"
 def padd_class(data, max):
     data=np.asarray(data)
     offset=max-data.shape[0]
@@ -104,16 +105,16 @@ class DatasetReader(Dataset):
     def __len__(self):
         return len(self.data)
 
-def get_data_loaders(batch_size1, batch_size2):
+def get_data_loader(batch_size):
     train_data_set = DatasetReader(get_train_data(),"train")
     validation_data_set = DatasetReader(get_validation_data(),"valid")
-    trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=batch_size1, shuffle=True,
+    trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=batch_size, shuffle=True,
                                               num_workers=2)
-    valloader = torch.utils.data.DataLoader(validation_data_set, batch_size=batch_size2, shuffle=False,
+    valloader = torch.utils.data.DataLoader(validation_data_set, batch_size=batch_size, shuffle=False,
                                               num_workers=2)
     return (trainloader, valloader)
 
 def test():
-    trainloader, valloader = get_data_loaders(100)
+    trainloader, valloader = get_data_loader(100)
     for idx, (inputs, targets) in enumerate(valloader):
         print(inputs.shape)

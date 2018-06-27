@@ -60,7 +60,7 @@ class Classifier(object):
         self.model_name_str = None
 
     def load_data(self):
-        print('==> Preparing data..')
+        print('==> Preparing data of {}..'.format(self.model_details.dataset))
         self.trainloader, self.testloader = self.model_details.dataset_loader #[trainloader, test_loader]
         train_count = len(self.trainloader) * self.model_details.batch_size
         test_count = len(self.testloader) * self.model_details.batch_size
@@ -90,7 +90,6 @@ class Classifier(object):
             # model = torch.nn.DataParallel(model)
             cudnn.benchmark = True
         self.model=model
-
         self.optimizer=self.model_details.get_optimizer(self)
 
     # Training
@@ -115,7 +114,6 @@ class Classifier(object):
             batch_loss = train_loss / (batch_idx + 1)
             if batch_idx % 2 == 0:
                 self.writer.add_scalar('step loss', batch_loss, step)
-
             total += targets.size(0)
             correct += predicted.eq(targets.data).cpu().sum()
 
@@ -170,7 +168,7 @@ class Classifier(object):
             self.best_acc = acc
             print("Accuracy:{}".format(acc))
         cm = metrics.confusion_matrix(target_all, predicted_all)
-        print("Confsusion metrics: \n{}".format(cm))
+        print("\nConfsusion metrics: \n{}".format(cm))
 
 pass
 # trainloader,testloader = get_data_loaders(200)
