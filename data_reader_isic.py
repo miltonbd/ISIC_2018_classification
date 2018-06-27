@@ -48,14 +48,14 @@ def get_data(files):
         elif int(label) == 6:
             vasc.append(row)
     counts=[len(mel),len(nv),len(bcc),len(akiec),len(bkl),len(df),len(vasc)]
-    max_elements=max(counts)
-    mel=padd_class(mel,max_elements)
-    bcc=padd_class(bcc,max_elements)
-    nv=padd_class(nv,max_elements)
-    akiec=padd_class(akiec,max_elements)
-    bkl=padd_class(bkl,max_elements)
-    df=padd_class(df,max_elements)
-    vasc=padd_class(vasc,max_elements)
+    # max_elements=max(counts)
+    # mel=padd_class(mel,max_elements)
+    # bcc=padd_class(bcc,max_elements)
+    # nv=padd_class(nv,max_elements)
+    # akiec=padd_class(akiec,max_elements)
+    # bkl=padd_class(bkl,max_elements)
+    # df=padd_class(df,max_elements)
+    # vasc=padd_class(vasc,max_elements)
 
     counts=[len(mel),len(nv),len(bcc),len(akiec),len(bkl),len(df),len(vasc)]
     print("mel: {}, nv: {}, bcc:{}, akiec:{},bkl:{},df:{}, vasc:{}".format(*counts))
@@ -104,7 +104,7 @@ class DatasetReader(Dataset):
     def __len__(self):
         return len(self.data)
 
-def get_data_sets(batch_size1, batch_size2):
+def get_data_loaders(batch_size1, batch_size2):
     train_data_set = DatasetReader(get_train_data(),"train")
     validation_data_set = DatasetReader(get_validation_data(),"valid")
     trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=batch_size1, shuffle=True,
@@ -114,6 +114,6 @@ def get_data_sets(batch_size1, batch_size2):
     return (trainloader, valloader)
 
 def test():
-    trainloader, valloader = get_data_sets(100)
+    trainloader, valloader = get_data_loaders(100)
     for idx, (inputs, targets) in enumerate(valloader):
         print(inputs.shape)

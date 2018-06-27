@@ -12,7 +12,7 @@ import os
 from tensorboardX import SummaryWriter
 from torch.autograd import Variable
 from torchsummary import summary
-from data_reader_isic import get_data_sets
+from data_reader_isic import get_data_loaders
 from utils import *
 from torch.backends import cudnn
 from augment_data_isic import augment_images
@@ -40,7 +40,7 @@ class Classifier(object):
         # Data
         print('==> Preparing data..')
 
-        self.trainloader, self.testloader = get_data_sets(self.model_details.batch_size_train,self.model_details.batch_size_test )
+        self.trainloader, self.testloader = self.model_details.dataset_loader #[trainloader, test_loader]
 
         train_count = len(self.trainloader) * self.model_details.batch_size_train
         test_count = len(self.testloader) * self.model_details.batch_size_test
@@ -75,7 +75,7 @@ class Classifier(object):
         self.model=model
 
         # summary(model, (3, 224, 224))
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss(torch.tensor([.1,.1,.1,.2,.1,.2,.2]).cuda())
 
         if model_details.optimizer=="adam":
             self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=self.learning_rate, eps=model_details.epsilon)
@@ -101,6 +101,7 @@ class Classifier(object):
             targets = Variable(targets, requires_grad=False).cuda()
 
             outputs = model(inputs)
+            outputs=torch.argmax(outputs.cpu(),dim=1)
             loss = self.criterion(outputs, targets)
             loss.backward()
             optimizer.step()
@@ -152,12 +153,7 @@ class Classifier(object):
 
             test_loss += loss.data[0]
             _, predicted = torch.max(outputs.data, 1)
-            predicted_batch=predicted.eq(targets.data).cpu()
-            predicted_reshaped=predicted_batch.numpy().reshape(-1)
-            predicted_all=np.concatenate((predicted_all,predicted_reshaped),axis=0)
-
-            targets_reshaped = targets.data.cpu().numpy().reshape(-1)
-            target_all = np.concatenate((target_all, targets_reshaped), axis=0)
+            ``
             total += targets.size(0)
             correct += predicted_batch.sum()
 

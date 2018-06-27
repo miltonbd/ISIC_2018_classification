@@ -12,7 +12,7 @@ import os
 from tensorboardX import SummaryWriter
 from torch.autograd import Variable
 from torchsummary import summary
-from data_reader_isic import get_data_sets
+from data_reader_isic import get_data_loaders
 from utils import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -39,7 +39,7 @@ class Classifier(object):
         # Data
         print('==> Preparing data..')
 
-        trainset, validationset = get_data_sets(self.model_details)
+        trainset, validationset = get_data_loaders(self.model_details)
         self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.model_details.batch_size, shuffle=True,
                                                   num_workers=2)
         self.testloader = torch.utils.data.DataLoader(validationset, batch_size=self.model_details.batch_size, shuffle=False, num_workers=2)
