@@ -71,7 +71,7 @@ class ModelDetailsInceptionV4(object):
 
         self.model= get_model()
         self.model_name_str = "inceptionv4"
-        self.batch_size=40
+        self.batch_size=100
         self.epochs = 200
         self.logs_dir  = "logs/inceptionv4/no_aug"
         self.augmentor = augment_images
