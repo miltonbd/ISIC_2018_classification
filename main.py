@@ -49,8 +49,10 @@ def get_optimizer(model_trainer):
     weight_decay=5e-4
     model_trainer.writer.add_scalar("leanring rate", learning_rate)
     model_trainer.writer.add_scalar("epsilon", epsilon)
-    optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
-                        lr=learning_rate,momentum=momentum,weight_decay=weight_decay)
+    # optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
+    #                     lr=learning_rate,momentum=momentum,weight_decay=weight_decay)
+    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
+                          lr=learning_rate)
     return optimizer
 
 class ModelDetails(object):
@@ -59,7 +61,7 @@ class ModelDetails(object):
         self.model_name_str = "vgg_19_bn_{}".format(gpu)
         self.batch_size=90
         self.epochs = 200
-        self.logs_dir  = "logs{}/{}/aug".format(gpu,self.model_name_str)
+        self.logs_dir  = "logs{}/{}/no_aug".format(gpu,self.model_name_str)
         self.augment_images = augment_images
         self.dataset_loader=get_data_loader(self.batch_size)
         self.criterion = FocalLoss(gamma)
