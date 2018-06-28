@@ -555,7 +555,7 @@ class NASNetALarge(nn.Module):
                                   in_channels_right=24*filters, out_channels_right=4*filters)
 
         self.relu = nn.ReLU()
-        self.avg_pool = nn.AvgPool2d(11, stride=1, padding=0)
+        self.avg_pool = nn.AvgPool2d(7, stride=1, padding=0)
         self.dropout = nn.Dropout()
         self.last_linear = nn.Linear(24*filters, self.num_classes)
 
@@ -637,7 +637,7 @@ def nasnetalarge(num_classes=1001, pretrained='imagenet'):
 if __name__ == "__main__":
 
     model = NASNetALarge()
-    input = Variable(torch.randn(2, 3, 331, 331))
+    input = Variable(torch.randn(2, 3, 224, 224))
 
     output = model(input)
     print(output.size())

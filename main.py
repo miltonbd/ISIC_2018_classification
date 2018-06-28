@@ -13,6 +13,7 @@ from torch import optim
 from focal_loss import FocalLoss
 from augment_data import augment_images
 from data_reader_isic import *
+from pretrainedmodels.models.pnasnet import pnasnet5large
 """
 sudo nvidia-smi -pl 180
 """
@@ -39,8 +40,20 @@ def get_vgg_model():
     summary(model.cuda(), (3, 224, 224))
     return model
 
-def get_model():
-    return get_vgg_model()
+def get_pnas_large_model(gpu):
+    print("==>Loading pnaslarge model...")
+    model=pnasnet5large()
+    num_layers_freeze = 50
+    for i,param in enumerate(model.parameters()):
+        if i>num_layers_freeze:
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
+    summary(model.cuda(), (3, 224, 224))
+    return model,"pnas_large_{}_no_aug".format(gpu)
+
+def get_model(gpu):
+    return get_pnas_large_model(gpu)
 
 def get_optimizer(model_trainer):
     learning_rate=0.001
@@ -57,11 +70,10 @@ def get_optimizer(model_trainer):
 
 class ModelDetails(object):
     def __init__(self,gpu):
-        self.model= get_model()
-        self.model_name_str = "vgg_19_bn_{}".format(gpu)
+        self.model,self.model_name_str = get_model(gpu)
         self.batch_size=90
         self.epochs = 200
-        self.logs_dir  = "logs{}/{}/no_aug".format(gpu,self.model_name_str)
+        self.logs_dir  = "logs{}/{}".format(gpu,self.model_name_str)
         self.augment_images = augment_images
         self.dataset_loader=get_data_loader(self.batch_size)
         self.criterion = FocalLoss(gamma)
