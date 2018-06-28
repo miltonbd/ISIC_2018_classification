@@ -16,9 +16,7 @@ from data_reader_isic import *
 """
 sudo nvidia-smi -pl 180
 """
-
 gamma = 2
-
 def get_vgg_model():
     model=vgg19_bn(True)
     model.classifier = nn.Sequential(
@@ -44,13 +42,15 @@ def get_vgg_model():
 def get_model():
     return get_vgg_model()
 
-def get_optimizer(classifier):
+def get_optimizer(model_trainer):
     learning_rate=0.001
     epsilon=1e-8
     momentum = 0.9
-    classifier.writer.add_scalar("leanring rate", learning_rate)
-    classifier.writer.add_scalar("epsilon", epsilon)
-    optimizer=optim.Adam(filter(lambda p: p.requires_grad, classifier.model.parameters()), lr=learning_rate)
+    weight_decay=5e-4
+    model_trainer.writer.add_scalar("leanring rate", learning_rate)
+    model_trainer.writer.add_scalar("epsilon", epsilon)
+    optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
+                        lr=learning_rate,momentum=momentum,weight_decay=weight_decay)
     return optimizer
 
 class ModelDetails(object):
