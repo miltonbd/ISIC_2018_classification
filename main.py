@@ -18,6 +18,11 @@ from pretrainedmodels.models.pnasnet import pnasnet5large
 sudo nvidia-smi -pl 180
 """
 gamma = 2
+
+def get_loss_function():
+    print("==> Using Focal Loss.....")
+    return FocalLoss(gamma)
+
 def get_vgg_model():
     model=vgg19_bn(True)
     model.classifier = nn.Sequential(
@@ -29,7 +34,7 @@ def get_vgg_model():
         nn.Dropout(),
         nn.Linear(4096, num_classes),
     )
-    num_layers_freeze = 50
+    num_layers_freeze = 200
 
     for i,param in enumerate(model.parameters()):
         if i>num_layers_freeze:
@@ -43,7 +48,7 @@ def get_vgg_model():
 def get_pnas_large_model(gpu):
     print("==>Loading pnaslarge model...")
     model=pnasnet5large()
-    num_layers_freeze = 50
+    num_layers_freeze = 400
     for i,param in enumerate(model.parameters()):
         if i>num_layers_freeze:
             param.requires_grad = True
@@ -62,21 +67,21 @@ def get_optimizer(model_trainer):
     weight_decay=5e-4
     model_trainer.writer.add_scalar("leanring rate", learning_rate)
     model_trainer.writer.add_scalar("epsilon", epsilon)
-    # optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
-    #                     lr=learning_rate,momentum=momentum,weight_decay=weight_decay)
-    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
-                          lr=learning_rate)
+    optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
+                        lr=learning_rate,momentum=momentum,weight_decay=weight_decay)
+    # optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
+    #                       lr=learning_rate)
     return optimizer
 
 class ModelDetails(object):
     def __init__(self,gpu):
         self.model,self.model_name_str = get_model(gpu)
-        self.batch_size=90
+        self.batch_size=20
         self.epochs = 200
         self.logs_dir  = "logs{}/{}".format(gpu,self.model_name_str)
         self.augment_images = augment_images
         self.dataset_loader=get_data_loader(self.batch_size)
-        self.criterion = FocalLoss(gamma)
+        self.criterion = get_loss_function()
         self.get_optimizer = get_optimizer
         self.dataset=data_set_name
 

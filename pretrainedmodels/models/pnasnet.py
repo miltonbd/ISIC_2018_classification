@@ -332,7 +332,7 @@ class PNASNet5Large(nn.Module):
         self.cell_11 = Cell(in_channels_left=4320, out_channels_left=864,
                             in_channels_right=4320, out_channels_right=864)
         self.relu = nn.ReLU()
-        self.avg_pool = nn.AvgPool2d(11, stride=1, padding=0)
+        self.avg_pool = nn.AvgPool2d(7, stride=1, padding=0)
         self.dropout = nn.Dropout(0.5)
         self.last_linear = nn.Linear(4320, num_classes)
 
