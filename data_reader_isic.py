@@ -100,7 +100,7 @@ def get_train_data():
     counts = [len(mel), len(nv), len(bcc), len(akiec), len(bkl), len(df), len(vasc)]
     print("mel: {}, nv: {}, bcc:{}, akiec:{},bkl:{},df:{}, vasc:{}".format(*counts))
     data=np.concatenate([mel, nv, bcc, akiec, bkl, df, vasc], axis=0)
-    data=np.repeat(data,3,axis=0)
+    data=np.repeat(data,2,axis=0)
     return data
 
 def get_validation_data():
@@ -116,14 +116,14 @@ class DatasetReader(Dataset):
         self.data=np.asarray(data)
         self.transform_train_image=transforms.Compose([
             RandomCrop([224,224]),
-            RandomHorizontalFlip(),
-            RandomVerticalFlip(),
-            RandomGrayscale(),
+            RandomHorizontalFlip(p=.2),
+            RandomVerticalFlip(p=.2),
+            RandomGrayscale(p=.2),
             transforms.RandomRotation(10),
             transforms.RandomAffine(10),
             ColorJitter(.6),
             transforms.ToTensor(),
-            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+            # transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         ]);
 
         self.transform_test_image = transforms.Compose([

@@ -90,6 +90,8 @@ class Classifier(object):
             #     inputs=torch.from_numpy(self.augment_images(inputs.numpy()))
             inputs, targets = inputs.to(device), targets.to(device)
             self.optimizer.zero_grad()
+
+
             outputs = model(inputs)
             loss = self.criterion(outputs, targets)
             loss.backward()
