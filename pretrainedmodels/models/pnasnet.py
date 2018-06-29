@@ -375,16 +375,16 @@ def pnasnet5large(num_classes=1000, pretrained='imagenet'):
     """
     if pretrained:
         settings = pretrained_settings['pnasnet5large'][pretrained]
-        assert num_classes == settings[
-            'num_classes'], 'num_classes should be {}, but is {}'.format(
-            settings['num_classes'], num_classes)
+        # assert num_classes == settings[
+        #     'num_classes'], 'num_classes should be {}, but is {}'.format(
+        #     settings['num_classes'], num_classes)
 
         # both 'imagenet'&'imagenet+background' are loaded from same parameters
         model = PNASNet5Large(num_classes=1001)
         model.load_state_dict(model_zoo.load_url(settings['url']))
 
         if pretrained == 'imagenet':
-            new_last_linear = nn.Linear(model.last_linear.in_features, 1000)
+            new_last_linear = nn.Linear(model.last_linear.in_features, num_classes)
             new_last_linear.weight.data = model.last_linear.weight.data[1:]
             new_last_linear.bias.data = model.last_linear.bias.data[1:]
             model.last_linear = new_last_linear

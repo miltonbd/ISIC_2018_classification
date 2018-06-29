@@ -7,6 +7,7 @@ from statics_isic import *
 import glob
 from PIL import Image
 import os
+from torchvision.transforms import *
 import threading
 num_classes=7
 data_set_name="ISIC 2018"
@@ -20,7 +21,6 @@ def padd_class(data, max):
     else:
         new_data=data
     return new_data
-
 
 def get_data(files):
     data=[]
@@ -78,8 +78,13 @@ class DatasetReader(Dataset):
         self.mode=mode
         self.data=np.asarray(data)
         self.transform_train_image=transforms.Compose([
-            transforms.RandomCrop([224,224]),
-            transforms.RandomHorizontalFlip(),
+            RandomCrop([224,224]),
+            RandomHorizontalFlip(),
+            RandomVerticalFlip(),
+            RandomGrayscale(),
+            transforms.RandomRotation(10),
+            transforms.RandomAffine(10),
+            ColorJitter(.6),
             transforms.ToTensor()]);
         self.transform_test_image = transforms.Compose([
             transforms.Resize([224, 224]),

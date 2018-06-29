@@ -47,7 +47,7 @@ def get_vgg_model():
 
 def get_pnas_large_model(gpu):
     print("==>Loading pnaslarge model...")
-    model=pnasnet5large()
+    model=pnasnet5large(num_classes=7)
     num_layers_freeze = 400
     for i,param in enumerate(model.parameters()):
         if i>num_layers_freeze:
@@ -55,13 +55,13 @@ def get_pnas_large_model(gpu):
         else:
             param.requires_grad = False
     summary(model.cuda(), (3, 224, 224))
-    return model,"pnas_large_{}_no_aug".format(gpu)
+    return model,"pnas_large_{}_no_aug_1".format(gpu)
 
 def get_model(gpu):
     return get_pnas_large_model(gpu)
 
 def get_optimizer(model_trainer):
-    learning_rate=0.001
+    learning_rate=0.0001
     epsilon=1e-8
     momentum = 0.9
     weight_decay=5e-4
