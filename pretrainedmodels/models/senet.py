@@ -367,10 +367,14 @@ class SENet(nn.Module):
 
 
 def initialize_pretrained_model(model, num_classes, settings):
-    assert num_classes == settings['num_classes'], \
-        'num_classes should be {}, but is {}'.format(
-            settings['num_classes'], num_classes)
+    # assert num_classes == settings['num_classes'], \
+    #     'num_classes should be {}, but is {}'.format(
+    #         settings['num_classes'], num_classes)
     model.load_state_dict(model_zoo.load_url(settings['url']))
+    new_last_linear = nn.Linear(model.last_linear.in_features, num_classes)
+    new_last_linear.weight.data = model.last_linear.weight.data[1:]
+    new_last_linear.bias.data = model.last_linear.bias.data[1:]
+    model.last_linear = new_last_linear
     model.input_space = settings['input_space']
     model.input_size = settings['input_size']
     model.input_range = settings['input_range']
@@ -380,7 +384,7 @@ def initialize_pretrained_model(model, num_classes, settings):
 
 def senet154(num_classes=1000, pretrained='imagenet'):
     model = SENet(SEBottleneck, [3, 8, 36, 3], groups=64, reduction=16,
-                  dropout_p=0.2, num_classes=num_classes)
+                  dropout_p=0.2, num_classes=1000)
     if pretrained is not None:
         settings = pretrained_settings['senet154'][pretrained]
         initialize_pretrained_model(model, num_classes, settings)
@@ -411,9 +415,9 @@ def se_resnet101(num_classes=1000, pretrained='imagenet'):
 
 def se_resnet152(num_classes=1000, pretrained='imagenet'):
     model = SENet(SEResNetBottleneck, [3, 8, 36, 3], groups=1, reduction=16,
-                  dropout_p=None, inplanes=64, input_3x3=False,
+                  dropout_p=.4, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
-                  num_classes=num_classes)
+                  num_classes=1000)
     if pretrained is not None:
         settings = pretrained_settings['se_resnet152'][pretrained]
         initialize_pretrained_model(model, num_classes, settings)

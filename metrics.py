@@ -12,10 +12,10 @@ import os
 from tensorboardX import SummaryWriter
 from torch.autograd import Variable
 from torchsummary import summary
-from data_reader_isic import get_data_loaders
+from data_reader import get_data_loaders
 from utils import *
 from torch.backends import cudnn
-from augment_data_isic import augment_images
+from augment_data import augment_images
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def test(self,model, epoch, writer):

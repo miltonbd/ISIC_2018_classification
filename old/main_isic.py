@@ -2,7 +2,7 @@ from torch import nn
 from old.classifier_isic import Classifier
 from pretrainedmodels.models.inceptionv4 import  inceptionv4
 from models.vgg import vgg19_bn
-from augment_data_isic import augment_images
+from augment_data import augment_images
 import time
 from torchvision import transforms
 from sandbox.data_reader_cifar import get_cifar10_dataset_loader

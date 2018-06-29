@@ -1,4 +1,4 @@
-from data_reader_isic import *
+from data_reader import *
 from PIL import Image
 from statics_isic import *
 

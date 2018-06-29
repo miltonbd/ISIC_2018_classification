@@ -99,7 +99,7 @@ class Classifier(object):
             train_loss += loss.item()
             _, predicted = outputs.max(1)
             batch_loss = train_loss / (batch_idx + 1)
-            if batch_idx % 2 == 0:
+            if batch_idx % 5 == 0:
                 self.writer.add_scalar('step loss', batch_loss, step)
             total += targets.size(0)
             correct += predicted.eq(targets.data).cpu().sum()
@@ -107,6 +107,8 @@ class Classifier(object):
             progress_bar(batch_idx, len(self.trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (batch_loss, 100. * correct / total, correct, total))
         self.writer.add_scalar('train loss',train_loss, epoch)
+
+
 
     def save_model(self, acc, epoch):
         print('\n Saving new model with accuracy {}'.format(acc))
@@ -149,6 +151,8 @@ class Classifier(object):
         # Save checkpoint.
         acc = 100. * correct / total
         self.writer.add_scalar('test accuracy', acc, epoch)
+        self.writer.add_scalar('test loss', test_loss, epoch)
+
         print("Accuracy:{}".format(acc))
         if acc > self.best_acc:
             self.save_model(acc, epoch)

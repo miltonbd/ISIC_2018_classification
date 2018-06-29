@@ -10,6 +10,8 @@ import os
 from torchvision.transforms import *
 import threading
 num_classes=7
+height=224
+width=224
 data_set_name="ISIC 2018"
 def padd_class(data, max):
     data=np.asarray(data)
@@ -90,17 +92,17 @@ def get_train_data():
             vasc.append(row)
     counts = [len(mel), len(nv), len(bcc), len(akiec), len(bkl), len(df), len(vasc)]
     max_elements=max(counts)
-    mel=padd_class(mel,max_elements)
-    bcc=padd_class(bcc,max_elements)
-    nv=padd_class(nv,max_elements)
-    akiec=padd_class(akiec,max_elements)
-    bkl=padd_class(bkl,max_elements)
-    df=padd_class(df,max_elements)
-    vasc=padd_class(vasc,max_elements)
+    #mel=padd_class(mel,max_elements)
+    #bcc=padd_class(bcc,max_elements)
+    #nv=padd_class(nv,max_elements)
+    #akiec=padd_class(akiec,max_elements)
+    #bkl=padd_class(bkl,max_elements)
+    #df=padd_class(df,max_elements)
+    #vasc=padd_class(vasc,max_elements)
     counts = [len(mel), len(nv), len(bcc), len(akiec), len(bkl), len(df), len(vasc)]
     print("mel: {}, nv: {}, bcc:{}, akiec:{},bkl:{},df:{}, vasc:{}".format(*counts))
     data=np.concatenate([mel, nv, bcc, akiec, bkl, df, vasc], axis=0)
-    data=np.repeat(data,2,axis=0)
+    # data=np.repeat(data,2,axis=0)
     return data
 
 def get_validation_data():
@@ -117,11 +119,12 @@ class DatasetReader(Dataset):
         self.transform_train_image=transforms.Compose([
             RandomCrop([224,224]),
             RandomHorizontalFlip(p=.2),
-            RandomVerticalFlip(p=.2),
-            RandomGrayscale(p=.2),
-            transforms.RandomRotation(10),
-            transforms.RandomAffine(10),
-            ColorJitter(.6),
+            # ColorJitter(.6),
+            # RandomVerticalFlip(p=.2),
+            # RandomGrayscale(p=.2),
+            # transforms.RandomRotation(10),
+            # transforms.RandomAffine(10),
+            # ColorJitter(.6),
             transforms.ToTensor(),
             # transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         ]);
