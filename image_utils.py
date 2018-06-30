@@ -7,6 +7,8 @@ from utils import *
 import threading
 import time
 thread_pools=[]
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True  # important to avoid
 
 def download_images(img_urls,save_files,size=(256,256), no_threads=6):
     for i in range(len(img_urls)):
