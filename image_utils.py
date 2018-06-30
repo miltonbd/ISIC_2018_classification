@@ -4,25 +4,30 @@ import requests
 from PIL import Image
 import tempfile
 from utils import *
+import threading
+import time
+thread_pools=[]
+
+def download_images(img_urls,save_files,size=(256,256), no_threads=6):
+    for i in range(len(img_urls)):
+        while(True):
+                img_url=img_urls[i]
+                save_file=save_files[i]
+                t=threading.Thread(target=download_image, args=(img_url,save_file,size,len(img_urls),(i+1)))
+                if len(thread_pools)<no_threads:
+                    t.start()
+                    thread_pools.append(save_file)
+                    break
 
 
-def download_image(img_url,save_file,size=(256, 256),total=None, progress=None):
-    buffer = tempfile.SpooledTemporaryFile(max_size=1e9)
-    r = requests.get(img_url, stream=True)
-    if r.status_code == 200:
-        downloaded = 0
-        filesize = int(r.headers['content-length'])
-        for chunk in r.iter_content():
-            downloaded += len(chunk)
-            buffer.write(chunk)
-            if total==None:
-                msg="Downloading: {}".format(save_file)
-            else:
-                msg="Downloading: {}, {} in {}".format(save_file,progress, total)
-
-            progress_bar( int(downloaded*100/filesize),100, msg)
-        buffer.seek(0)
-        img = Image.open(io.BytesIO(buffer.read()))
-        img = img.resize(size)
+def download_image(img_url,save_file,size,total=None, progress=None):
+    progress_bar(progress,total,"Downloaded: {}".format(save_file))
+    r = requests.get(img_url)
+    if r.status_code != requests.codes.ok:
+        assert False, 'Status code error: {}.'.format(r.status_code)
+    with Image.open(io.BytesIO(r.content)) as img:
         img.save(save_file, quality=100)
-    buffer.close()
+        img1 = Image.open(save_file)
+        img1.resize(size)
+        img1.save(save_file)
+        thread_pools.remove(save_file)

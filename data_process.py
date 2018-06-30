@@ -97,14 +97,19 @@ def add_additional_data_json(additional_dir,class_name):
     """
     save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_256"
     json_files=glob.glob(os.path.join(additional_dir,"**","**.json"))
+    img_urls=[]
+    save_files=[]
     for i,jsonfile in enumerate(json_files):
         json_data=read_json_file(jsonfile)
         id=json_data['_id']
         url = "https://isic-archive.com/api/v1/image/{}/download".format(id)
         save_file=os.path.join(save_dir,class_name,"{}.jpg".format(json_data['name']))
+        img_urls.append(url)
+        save_files.append(save_file)
+    download_images(img_urls,save_files)
         # if os.path.exists(save_file):
         #     continue
-        download_image(url,save_file,total=len(json_files), progress=i+1)
+        # download_image(url,save_file,total=len(json_files), progress=i+1)
 
 
 

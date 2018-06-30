@@ -20,7 +20,6 @@ model_urls = {
     'vgg19_bn': 'https://download.pytorch.org/models/vgg19_bn-c79401a0.pth',
 }
 
-
 class VGG(nn.Module):
 
     def __init__(self, features, num_classes=1000, init_weights=True):
