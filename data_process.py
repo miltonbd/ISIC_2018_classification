@@ -71,7 +71,25 @@ def train_test_split():
 
     resize(valid_data,save_dir)
 
+def add_additional_data():
+    """
+    move aditional data to Train_256 class specific folder.
+    """
+    additional_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_aditional"
+    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_256"
+    additonal_dirs=glob.glob(os.path.join(additional_dir,"*"))
+    for dirname in additonal_dirs:
+        class_name=dirname.split('/')[-1]
+        for filepath in glob.glob(os.path.join(dirname,"**")):
+            save_file=os.path.join(save_dir,class_name,filepath.split('/')[-1])
+            if os.path.exists(save_file):
+                continue
+            img = Image.open(filepath)
+            img = img.resize((256, 256))
+            img.save(save_file)
+
 
 if __name__ == '__main__':
-    train_test_split()
+    # train_test_split()
     # resize_valid()
+    add_additional_data()

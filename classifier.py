@@ -39,8 +39,10 @@ class Classifier(object):
         self.best_acc = 0  # best test accuracy
         self.start_epoch = 0  # start from epoch 0 or last checkpoint epoch
         self.net = None
-        self.criterion = model_details.criterion
+        self.get_loss_function = model_details.get_loss_function
         self.optimizer = None
+        self.criterion = None
+
         self.model_name_str = None
 
     def load_data(self):
@@ -75,6 +77,8 @@ class Classifier(object):
             cudnn.benchmark = True
         self.model=model
         self.optimizer=self.model_details.get_optimizer(self)
+        self.criterion=self.model_details.get_loss_function(self)
+
 
     # Training
     def train(self, epoch):
@@ -152,6 +156,7 @@ class Classifier(object):
         acc = 100. * correct / total
         self.writer.add_scalar('test accuracy', acc, epoch)
         self.writer.add_scalar('test loss', test_loss, epoch)
+
 
         print("Accuracy:{}".format(acc))
         if acc > self.best_acc:
