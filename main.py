@@ -37,7 +37,7 @@ def get_optimizer(model_trainer):
     # optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
     #                      lr=0.001,momentum=momentum,weight_decay=weight_decay)
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
-                            lr=0.01)
+                            lr=0.001)
     return optimizer
 
 class ModelDetails(object):

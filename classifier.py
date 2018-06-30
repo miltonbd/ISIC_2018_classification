@@ -79,6 +79,8 @@ class Classifier(object):
         self.optimizer=self.model_details.get_optimizer(self)
         self.criterion=self.model_details.get_loss_function(self)
 
+    def adjust_weight_with_steps(self):
+        pass
 
     # Training
     def train(self, epoch):
@@ -111,8 +113,6 @@ class Classifier(object):
             progress_bar(batch_idx, len(self.trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (batch_loss, 100. * correct / total, correct, total))
         self.writer.add_scalar('train loss',train_loss, epoch)
-
-
 
     def save_model(self, acc, epoch):
         print('\n Saving new model with accuracy {}'.format(acc))

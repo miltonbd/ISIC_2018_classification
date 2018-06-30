@@ -1,7 +1,8 @@
 from data_reader import *
 from PIL import Image
 from statics_isic import *
-
+from utils import *
+from json_utils import *
 
 def read_train_data_from_csv():
     csvfile=os.path.join(data_dir,"ISIC2018_Task3_Training_GroundTruth.csv")
@@ -88,8 +89,28 @@ def add_additional_data():
             img = img.resize((256, 256))
             img.save(save_file)
 
+from image_utils import *
+
+def add_additional_data_json(additional_dir,class_name):
+    """
+    move aditional data to Train_256 class specific folder.
+    """
+    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_256"
+    json_files=glob.glob(os.path.join(additional_dir,"**","**.json"))
+    for i,jsonfile in enumerate(json_files):
+        json_data=read_json_file(jsonfile)
+        id=json_data['_id']
+        url = "https://isic-archive.com/api/v1/image/{}/download".format(id)
+        save_file=os.path.join(save_dir,class_name,"{}.jpg".format(json_data['name']))
+        # if os.path.exists(save_file):
+        #     continue
+        download_image(url,save_file,total=len(json_files), progress=i+1)
+
+
+
+
 
 if __name__ == '__main__':
     # train_test_split()
     # resize_valid()
-    add_additional_data()
+    add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images meta_mel","MEL")
