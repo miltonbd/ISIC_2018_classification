@@ -33,3 +33,6 @@ def download_image(img_url,save_file,size,total=None, progress=None):
         img1.resize(size)
         img1.save(save_file)
         thread_pools.remove(save_file)
+
+
+

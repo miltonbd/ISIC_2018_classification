@@ -2,7 +2,7 @@ from data_reader import *
 from PIL import Image
 from statics_isic import *
 from utils import *
-from json_utils import *
+from file_reader_utils import *
 
 def read_train_data_from_csv():
     csvfile=os.path.join(data_dir,"ISIC2018_Task3_Training_GroundTruth.csv")

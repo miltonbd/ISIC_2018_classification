@@ -13,7 +13,7 @@ from torchsummary import summary
 from utils import *
 from torch.backends import cudnn
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+import torch.nn.functional as F
 import os
 import argparse
 
@@ -73,7 +73,7 @@ class Classifier(object):
 
         if self.use_cuda:
             model=model.cuda()
-            # model = torch.nn.DataParallel(model)
+            model = torch.nn.DataParallel(model)
             cudnn.benchmark = True
         self.model=model
         self.optimizer=self.model_details.get_optimizer(self)
@@ -96,8 +96,6 @@ class Classifier(object):
             #     inputs=torch.from_numpy(self.augment_images(inputs.numpy()))
             inputs, targets = inputs.to(device), targets.to(device)
             self.optimizer.zero_grad()
-
-
             outputs = model(inputs)
             loss = self.criterion(outputs, targets)
             loss.backward()
@@ -112,6 +110,8 @@ class Classifier(object):
 
             progress_bar(batch_idx, len(self.trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (batch_loss, 100. * correct / total, correct, total))
+            if batch_idx > 50:
+                break
         self.writer.add_scalar('train loss',train_loss, epoch)
 
     def save_model(self, acc, epoch):
@@ -126,6 +126,7 @@ class Classifier(object):
         torch.save(state, './checkpoint/{}_ckpt.t7'.format(self.model_name_str ))
 
     def test(self,epoch):
+        import torch.nn.functional as F
         model=self.model
         model.eval()
         test_loss = 0
@@ -133,17 +134,17 @@ class Classifier(object):
         total = 0
         target_all = []
         predicted_all = []
+        scores_for_upload=[]
+        images=[]
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = self.criterion(outputs, targets)
-
                 test_loss += loss.item()
-                _, predicted = outputs.max(1)
+                predicted_values, predicted = outputs.max(1)
                 predicted_reshaped = predicted.cpu().numpy().reshape(-1)
                 predicted_all = np.concatenate((predicted_all, predicted_reshaped), axis=0)
-
                 targets_reshaped = targets.data.cpu().numpy().reshape(-1)
                 target_all = np.concatenate((target_all, targets_reshaped), axis=0)
                 total += targets.size(0)
@@ -151,13 +152,29 @@ class Classifier(object):
 
                 progress_bar(batch_idx, len(self.testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                              % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+                start_index = batch_idx * self.model_details.batch_size
+                end_index =min( start_index + self.model_details.batch_size, len(self.testloader.dataset))
+                j=0
+                out_probs=F.softmax(outputs,dim=1)
+                for index in range(start_index,end_index):
+                    out=predicted_values[j]
+                    image=self.testloader.dataset.images[index][0]
+                    images.append(image)
+                    image_id = os.path.basename(image).split('.')[0]
+                    probs=out_probs.cpu().data.numpy()[j]
+                    #  score_row = "{id} {mel:.3f} {nv:.3f} {bcc:.3f} {akiec:.3f} {bkl:.3f} {df:.3f} {vasc:.3f}".format(id=image_id,**probs)
+
+                    score_row = "{id},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}".format(id=image_id,*probs)
+                    scores_for_upload.append(score_row)
+                    j+=1
 
         # Save checkpoint.
         acc = 100. * correct / total
         self.writer.add_scalar('test accuracy', acc, epoch)
         self.writer.add_scalar('test loss', test_loss, epoch)
 
-
+        from file_utils import save_to_file
+        save_to_file('res/result.csv', scores_for_upload)
         print("Accuracy:{}".format(acc))
         if acc > self.best_acc:
             self.save_model(acc, epoch)

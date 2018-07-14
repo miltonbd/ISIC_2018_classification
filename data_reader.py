@@ -112,10 +112,10 @@ def get_validation_data():
 class DatasetReader(Dataset):
     """
     """
-    def __init__(self, data,mode='train',):
-        print("{} count:{}".format(mode,len(data)))
+    def __init__(self, images, mode='train', ):
+        print("{} count:{}".format(mode, len(images)))
         self.mode=mode
-        self.data=np.asarray(data)
+        self.images=np.asarray(images)
         self.transform_train_image=transforms.Compose([
             RandomCrop([224,224]),
             RandomHorizontalFlip(p=.2),
@@ -135,8 +135,8 @@ class DatasetReader(Dataset):
 
 
     def __getitem__(self, index):
-        img_path=self.data[index,0]
-        label=int(self.data[index,1])
+        img_path=self.images[index, 0]
+        label=int(self.images[index, 1])
 
         if not os.path.exists(img_path):
             print("{} image not found".format(img_path))
@@ -151,7 +151,7 @@ class DatasetReader(Dataset):
             return data, label
 
     def __len__(self):
-        return len(self.data)
+        return len(self.images)
 
 def get_data_loader(batch_size):
     train_data_set = DatasetReader(get_train_data(),"train")

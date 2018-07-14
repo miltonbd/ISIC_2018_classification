@@ -4,7 +4,7 @@ from torch import nn
 from data_reader import *
 from utils import *
 
-def get_vgg_model(gpu):
+def get_vgg_model(gpu,percentage_freeze):
     model=vgg19_bn(True)
     model.classifier = nn.Sequential(
         nn.Linear(25088, 4096),
@@ -17,10 +17,14 @@ def get_vgg_model(gpu):
     )
     num_layers_freeze = 30
 
+    params_freezed_count=0
+    params_total_count=get_total_params(model)
     for i,param in enumerate(model.parameters()):
-        if i>num_layers_freeze:
+        percentage_params=params_freezed_count/params_total_count
+        if percentage_params>percentage_freeze:
             param.requires_grad = True
         else:
+            params_freezed_count+=np.prod(param.size())
             param.requires_grad = False
 
     summary(model.cuda(), (3, height, width))
@@ -86,7 +90,7 @@ def get_pnas_large_model(gpu,percentage_freeze):
     print("==>Loading pnaslarge model...")
     model=pnasnet5large(num_classes=num_classes)
 
-    new_linear = nn.Linear(model.last_linear.in_features, 1000)
+    new_linear = nn.Linear(model.last_linear.in_features, num_classes)
     new_linear.weight.data = model.last_linear.weight.data[1:]
     new_linear.bias.data = model.last_linear.bias.data[1:]
     model.last_linear = new_linear
