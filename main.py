@@ -1,5 +1,5 @@
 import  os
-gpu=0
+gpu=1
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
 from classifier import Classifier
@@ -9,9 +9,7 @@ from model_loader import *
 from loss_loader import *
 """
 sudo nvidia-smi -pl 180
-
 use command line to run the training.
-
 todo download more images using image_utils and isic-arhive. Also, use more online resources for data. 
 
 """
@@ -20,7 +18,7 @@ def get_loss_function(classifier):
     return get_cross_entropy(classifier)
 
 def get_model(gpu):
-    return get_vgg_model(gpu,.3)
+    return get_pnas_large_model(gpu,.3)
 
 def get_optimizer(model_trainer):
     epsilon=1e-8

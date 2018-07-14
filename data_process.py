@@ -3,7 +3,10 @@ from PIL import Image
 from statics_isic import *
 from utils import *
 from file_reader_utils import *
+import csv
 
+height=512
+width=512
 def read_train_data_from_csv():
     csvfile=os.path.join(data_dir,"ISIC2018_Task3_Training_GroundTruth.csv")
     images=[]
@@ -51,25 +54,22 @@ def resize(files,save_dir):
             #print(img_np.shape)
             imageio.imwrite(save_file, img_np)
             img = Image.open(save_file)
-            img = img.resize((256, 256))
+            img = img.resize((height, width))
             img.save(save_file)
             continue
-        img=img.resize((256,256))
+        img=img.resize((height,width))
         img.save(save_file)
         if idx%500==0:
             print(idx)
 
 def train_test_split():
     data = read_train_data_from_csv()
-    save_dir = os.path.join(data_dir,"Train_256")
+    save_dir = os.path.join(data_dir,"Train_512")
     train_end_count = int(len(data) * .7)
     train_data = data[0:train_end_count]
     valid_data = data[train_end_count:]
-
     resize(train_data,save_dir)
-
-    save_dir = os.path.join(data_dir,"Validation_256")
-
+    save_dir = os.path.join(data_dir,"Validation_512")
     resize(valid_data,save_dir)
 
 def add_additional_data():
@@ -77,7 +77,7 @@ def add_additional_data():
     move aditional data to Train_256 class specific folder.
     """
     additional_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_aditional"
-    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_256"
+    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_512"
     additonal_dirs=glob.glob(os.path.join(additional_dir,"*"))
     for dirname in additonal_dirs:
         class_name=dirname.split('/')[-1]
@@ -86,7 +86,7 @@ def add_additional_data():
             if os.path.exists(save_file):
                 continue
             img = Image.open(filepath)
-            img = img.resize((256, 256))
+            img = img.resize((height, width))
             img.save(save_file)
 
 from image_utils import *
@@ -95,7 +95,7 @@ def add_additional_data_json(additional_dir,class_name):
     """
     move aditional data to Train_256 class specific folder.
     """
-    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_256"
+    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_"+height
     json_files=glob.glob(os.path.join(additional_dir,"**","**.json"))
     img_urls=[]
     save_files=[]
@@ -111,11 +111,49 @@ def add_additional_data_json(additional_dir,class_name):
         #     continue
         # download_image(url,save_file,total=len(json_files), progress=i+1)
 
+def resize_test(test_data,save_class_dir):
 
+    for idx, path in enumerate(test_data):
+        if not os.path.exists(save_class_dir):
+            os.makedirs(save_class_dir)
+        img = Image.open(path)
+        img_np_de = np.asarray(img)
+        if img_np_de.ndim != 3:
+            print("{} {}".format(path, img_np_de.shape))
+            continue
+        # print(save_class_dir)
+        save_file = os.path.join(save_class_dir, os.path.basename(path).split(".")[0] + ".jpg")
 
+        if img.layers == 1:
+            img_np = imageio.imread(path)
+            img_np = img_np.reshape((img_np.shape[0], img_np.shape[1], 1))
+            # print(img_np.shape)
+            img_np = np.repeat(img_np, 3, 2)
+            # print(img_np.shape)
+            imageio.imwrite(save_file, img_np)
+            img = Image.open(save_file)
+            img = img.resize((height, width))
+            img.save(save_file)
+            continue
+        img = img.resize((height, width))
+        img.save(save_file)
+        if idx % 500 == 0:
+            print(idx)
 
 
 if __name__ == '__main__':
+    test_data = glob.glob(
+        "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Test_Input/**.jpg")
+    save_class_dir_test = os.path.join(data_dir, "Test_512")
+
+
+
+    valid_data_upload = glob.glob(
+        "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Validation_Input/**.jpg")
+    save_class_dir_valid = os.path.join(data_dir, "Validation_upload")
+    resize_test(valid_data_upload, save_class_dir_valid);
+
+    # / media / milton / ssd1 / research / competitions / ISIC_2018_data / data / ISIC2018_Task3_Validation_Input
     # train_test_split()
     # resize_valid()
-    add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images meta_mel","MEL")
+    # add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images meta_mel","MEL")

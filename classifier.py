@@ -16,7 +16,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 import torch.nn.functional as F
 import os
 import argparse
-
+from data_reader import get_test_loader_for_upload, get_validation_loader_for_upload
 from models import *
 from utils import progress_bar
 
@@ -134,8 +134,6 @@ class Classifier(object):
         total = 0
         target_all = []
         predicted_all = []
-        scores_for_upload=[]
-        images=[]
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
                 inputs, targets = inputs.to(device), targets.to(device)
@@ -149,36 +147,56 @@ class Classifier(object):
                 target_all = np.concatenate((target_all, targets_reshaped), axis=0)
                 total += targets.size(0)
                 correct += predicted.eq(targets).sum().item()
-
                 progress_bar(batch_idx, len(self.testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                              % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
                 start_index = batch_idx * self.model_details.batch_size
                 end_index =min( start_index + self.model_details.batch_size, len(self.testloader.dataset))
-                j=0
-                out_probs=F.softmax(outputs,dim=1)
-                for index in range(start_index,end_index):
-                    out=predicted_values[j]
-                    image=self.testloader.dataset.images[index][0]
-                    images.append(image)
-                    image_id = os.path.basename(image).split('.')[0]
-                    probs=out_probs.cpu().data.numpy()[j]
-                    #  score_row = "{id} {mel:.3f} {nv:.3f} {bcc:.3f} {akiec:.3f} {bkl:.3f} {df:.3f} {vasc:.3f}".format(id=image_id,**probs)
-
-                    score_row = "{id},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}".format(id=image_id,*probs)
-                    scores_for_upload.append(score_row)
-                    j+=1
+                # j=0
+                # out_probs=F.softmax(outputs,dim=1)
+                # for index in range(start_index,end_index):
+                #     out=predicted_values[j]
+                #     image=self.testloader.dataset.images[index][0]
+                #     images.append(image)
+                #     image_id = os.path.basename(image).split('.')[0]
+                #     probs=out_probs.cpu().data.numpy()[j]
+                #     #  score_row = "{id} {mel:.3f} {nv:.3f} {bcc:.3f} {akiec:.3f} {bkl:.3f} {df:.3f} {vasc:.3f}".format(id=image_id,**probs)
+                #     score_row = "{id},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}".format(id=image_id,*probs)
+                #     scores_for_upload.append(score_row)
+                #     j+=1
 
         # Save checkpoint.
         acc = 100. * correct / total
         self.writer.add_scalar('test accuracy', acc, epoch)
         self.writer.add_scalar('test loss', test_loss, epoch)
-
         from file_utils import save_to_file
-        save_to_file('res/result.csv', scores_for_upload)
         print("Accuracy:{}".format(acc))
+
         if acc > self.best_acc:
             self.save_model(acc, epoch)
             self.best_acc = acc
+            scores_for_upload = []
+            scores_for_upload.append("image,MEL,NV,BCC,AKIEC,BKL,DF,VASC")
+
+            with torch.no_grad():
+                loader_for_upload = get_validation_loader_for_upload(self.model_details.batch_size)
+                for batch_idx, (inputs, targets) in enumerate(loader_for_upload):
+                    inputs, targets = inputs.to(device), targets.to(device)
+                    outputs = model(inputs)
+                    start_index = batch_idx * self.model_details.batch_size
+                    end_index = min(start_index + self.model_details.batch_size, len(loader_for_upload.dataset))
+                    j = 0
+                    out_probs = F.softmax(outputs, dim=1)
+                    for index in range(start_index, end_index):
+                        image = loader_for_upload.dataset.images[index]
+                        image_id = os.path.basename(image).split('.')[0]
+                        probs = out_probs.cpu().data.numpy()[j]
+                        #  score_row = "{id} {mel:.3f} {nv:.3f} {bcc:.3f} {akiec:.3f} {bkl:.3f} {df:.3f} {vasc:.3f}".format(id=image_id,**probs)
+                        score_row = "{id},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}".format(id=image_id, *probs)
+                        scores_for_upload.append(score_row)
+                        j += 1
+                save_to_file('res/result.csv', scores_for_upload)
+
+
         cm = metrics.confusion_matrix(target_all, predicted_all)
         print("\nConfsusion metrics: \n{}".format(cm))
 

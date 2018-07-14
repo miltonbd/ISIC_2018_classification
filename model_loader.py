@@ -19,13 +19,13 @@ def get_vgg_model(gpu,percentage_freeze):
 
     params_freezed_count=0
     params_total_count=get_total_params(model)
-    for i,param in enumerate(model.parameters()):
-        percentage_params=params_freezed_count/params_total_count
-        if percentage_params>percentage_freeze:
-            param.requires_grad = True
-        else:
-            params_freezed_count+=np.prod(param.size())
-            param.requires_grad = False
+    # for i,param in enumerate(model.parameters()):
+    #     percentage_params=params_freezed_count/params_total_count
+    #     if percentage_params>percentage_freeze:
+    #         param.requires_grad = True
+    #     else:
+    #         params_freezed_count+=np.prod(param.size())
+    #         param.requires_grad = False
 
     summary(model.cuda(), (3, height, width))
     return model,"vgg_19_{}_adam".format(gpu)

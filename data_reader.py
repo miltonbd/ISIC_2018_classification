@@ -106,7 +106,7 @@ def get_train_data():
     return data
 
 def get_validation_data():
-    files=glob.glob(os.path.join(data_dir, 'Validation_256/**/**.jpg'))
+    files=glob.glob(os.path.join(data_dir, 'Validation_512/**/**.jpg'))
     return get_data(files)
 
 class DatasetReader(Dataset):
@@ -166,3 +166,41 @@ def test():
     trainloader, valloader = get_data_loader(100)
     for idx, (inputs, targets) in enumerate(valloader):
         print(inputs.shape)
+
+
+
+class TestDatasetReader(Dataset):
+    """
+    """
+    def __init__(self, images ):
+        self.images=np.asarray(images)
+        self.transform_test_image = transforms.Compose([
+            transforms.Resize([224, 224]),
+            transforms.ToTensor()]);
+
+
+    def __getitem__(self, index):
+        img_path=self.images[index]
+        if not os.path.exists(img_path):
+            print("{} image not found".format(img_path))
+            exit(0);
+        img = Image.open(img_path)
+        data = self.transform_test_image(img)
+        return data, -1
+
+    def __len__(self):
+        return len(self.images)
+
+def get_validation_loader_for_upload(batch_size):
+    test_files=glob.glob("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Validation_upload/**.jpg")
+    test_data_set = TestDatasetReader(test_files)
+    testloader = torch.utils.data.DataLoader(test_data_set, batch_size=batch_size, shuffle=False,
+                                              num_workers=2)
+    return testloader
+
+def get_test_loader_for_upload(batch_size):
+    test_files=glob.glob("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Test_512/**.jpg")
+    test_data_set = TestDatasetReader(test_files)
+    testloader = torch.utils.data.DataLoader(test_data_set, batch_size=batch_size, shuffle=False,
+                                              num_workers=2)
+    return testloader
