@@ -15,11 +15,12 @@ from torch.backends import cudnn
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 import torch.nn.functional as F
 import os
+import numpy as np
 import argparse
 from data_reader import get_test_loader_for_upload, get_validation_loader_for_upload
 from models import *
 from utils import progress_bar
-
+from torch import optim
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
@@ -90,6 +91,9 @@ class Classifier(object):
         train_loss = 0
         correct = 0
         total = 0
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=3, verbose=True)
+        epoch_loss = []
+
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
             step = epoch * len(self.trainloader) + batch_idx
             # if not self.augment_images==None:
@@ -100,7 +104,9 @@ class Classifier(object):
             loss = self.criterion(outputs, targets)
             loss.backward()
             self.optimizer.step()
-            train_loss += loss.item()
+            item_loss = loss.item()
+            epoch_loss.append(item_loss)
+            train_loss += item_loss
             _, predicted = outputs.max(1)
             batch_loss = train_loss / (batch_idx + 1)
             if batch_idx % 5 == 0:
@@ -112,6 +118,7 @@ class Classifier(object):
                          % (batch_loss, 100. * correct / total, correct, total))
             if batch_idx > 50:
                 break
+        scheduler.step(np.mean(epoch_loss))
         self.writer.add_scalar('train loss',train_loss, epoch)
 
     def save_model(self, acc, epoch):
