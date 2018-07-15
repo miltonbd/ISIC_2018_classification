@@ -59,6 +59,7 @@ class Classifier(object):
         print('\n==> using model {}'.format(model_name_str))
         self.model_name_str="{}".format(model_name_str)
         model = model_details.model
+
         # Model
         try:
             # Load checkpoint.

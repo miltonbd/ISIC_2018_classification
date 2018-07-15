@@ -22,7 +22,7 @@ use command line to run the training.
     6. bigger 500 px image size. big image tends to make
     7. save model and load from previous
     8. adversarial training, use crosssentropy, focal loss
-    9. use similar optimizatio adam and learning rate schedule like wider face pedestrian dataset.
+    9. use similar optimizatio adam and learning rate schedule like wider face pedestrian dataset. (done)
     10.BGRto RGB
     11.     
     
