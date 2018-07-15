@@ -32,7 +32,7 @@ def get_vgg_model(gpu,percentage_freeze):
 
 from pretrainedmodels.models.senet import se_resnet152
 
-def get_senet_model(gpu):
+def get_senet_model(gpu,percentage_freeze):
     print("==>Loading SENet model...")
     model=se_resnet152(num_classes=num_classes)
     num_layers_freeze = 50
@@ -89,12 +89,6 @@ from pretrainedmodels.models.pnasnet import  pnasnet5large
 def get_pnas_large_model(gpu,percentage_freeze):
     print("==>Loading pnaslarge model...")
     model=pnasnet5large(num_classes=num_classes)
-
-    new_linear = nn.Linear(model.last_linear.in_features, num_classes)
-    new_linear.weight.data = model.last_linear.weight.data[1:]
-    new_linear.bias.data = model.last_linear.bias.data[1:]
-    model.last_linear = new_linear
-
     params_freezed_count=0
     params_total_count=get_total_params(model)
     for i,param in enumerate(model.parameters()):

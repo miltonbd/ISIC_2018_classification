@@ -288,7 +288,7 @@ class Cell(CellBase):
 
 
 class PNASNet5Large(nn.Module):
-    def __init__(self, num_classes=1001):
+    def __init__(self, num_classes):
         super().__init__()
         self.num_classes = num_classes
         self.conv_0 = nn.Sequential(OrderedDict([
@@ -380,15 +380,17 @@ def pnasnet5large(num_classes=1000, pretrained='imagenet'):
         #     settings['num_classes'], num_classes)
 
         # both 'imagenet'&'imagenet+background' are loaded from same parameters
-        model = PNASNet5Large(num_classes=1001)
-        model.load_state_dict(model_zoo.load_url(settings['url']))
-
+        model = PNASNet5Large(num_classes)
+        #https: // discuss.pytorch.org / t / how - to - load - part - of - pre - trained - model / 1113 / 2
+        pretrained_weight_dict = model_zoo.load_url(settings['url'])
         # if pretrained == 'imagenet':
         #     new_last_linear = nn.Linear(model.last_linear.in_features, num_classes)
         #     new_last_linear.weight.data = model.last_linear.weight.data[1:]
         #     new_last_linear.bias.data = model.last_linear.bias.data[1:]
         #     model.last_linear = new_last_linear
-
+        from utils_pytorch import load_pretrained_dict_only_matched
+        model=load_pretrained_dict_only_matched(model, pretrained_weight_dict)
+        # model.load_state_dict(pretrained_weight_dict)
         model.input_space = settings['input_space']
         model.input_size = settings['input_size']
         model.input_range = settings['input_range']

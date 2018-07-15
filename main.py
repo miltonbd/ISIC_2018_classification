@@ -1,5 +1,5 @@
 import  os
-gpu=1
+gpu=0
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
 from classifier import Classifier
@@ -10,7 +10,20 @@ from loss_loader import *
 """
 sudo nvidia-smi -pl 180
 use command line to run the training.
-todo download more images using image_utils and isic-arhive. Also, use more online resources for data. 
+
+################## ToDo ########################
+    1. download more images using image_utils and isic-arhive. Also, use more online resources for data. 
+    2. use additional dasets used in https://github.com/learningtitans/isbi2017-part3
+    3. use pair augmentation, random erase
+    4. download more images for each classes.
+    5. preprocessing and feature extraction
+    6. bigger 500 px image size. big image tends to make
+    7. fix pnas output class to 7
+    8. adversarial training, use crosssentropy, focal loss
+    9. use similar optimizatio adam and learning rate schedule like wider face pedestrian dataset.
+    10.BGRto RGB
+    11.     
+    
 
 """
 
