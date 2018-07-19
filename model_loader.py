@@ -30,11 +30,11 @@ def get_vgg_model(gpu,percentage_freeze):
     summary(model.cuda(), (3, height, width))
     return model,"vgg_19_{}_adam".format(gpu)
 
-from pretrainedmodels.models.senet import se_resnet152
+from pretrainedmodels.models.senet import senet154
 
 def get_senet_model(gpu,percentage_freeze):
     print("==>Loading SENet model...")
-    model=se_resnet152(num_classes=num_classes)
+    model=senet154(num_classes=num_classes+1)
     num_layers_freeze = 50
     for i,param in enumerate(model.parameters()):
         if i>num_layers_freeze:

@@ -1,7 +1,7 @@
 import  os
-gpu=0
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
+# gpu=0
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
 from classifier import Classifier
 from torch import optim
 from augment_data import augment_images
@@ -10,7 +10,7 @@ from loss_loader import *
 from torch.optim import lr_scheduler
 
 """
-sudo nvidia-smi -pl 180
+sudo nvidia-smi -pl 220
 use command line to run the training.
 
 ################## ToDo ########################
@@ -22,7 +22,7 @@ use command line to run the training.
     6. bigger 500 px image size. big image tends to make
     7. save model and load from previous
     8. adversarial training, use crosssentropy, focal loss
-    9. use similar optimizatio adam and learning rate schedule like wider face pedestrian dataset. (done)
+    9. 
     10.BGRto RGB
     11.     
     
@@ -33,7 +33,7 @@ def get_loss_function(classifier):
     return get_cross_entropy(classifier)
 
 def get_model(gpu):
-    return get_pnas_large_model(gpu,.3)
+    return get_senet_model(gpu,.3)
 
 def get_optimizer(model_trainer):
     epsilon=1e-8
@@ -44,7 +44,7 @@ def get_optimizer(model_trainer):
     # optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
     #                      lr=0.001,momentum=momentum,weight_decay=weight_decay)
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
-                            lr=0.001)
+                            lr=0.00001,)
     return optimizer
 
 class ModelDetails(object):

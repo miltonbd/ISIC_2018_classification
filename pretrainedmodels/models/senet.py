@@ -370,11 +370,21 @@ def initialize_pretrained_model(model, num_classes, settings):
     # assert num_classes == settings['num_classes'], \
     #     'num_classes should be {}, but is {}'.format(
     #         settings['num_classes'], num_classes)
-    model.load_state_dict(model_zoo.load_url(settings['url']))
-    new_last_linear = nn.Linear(model.last_linear.in_features, num_classes)
-    new_last_linear.weight.data = model.last_linear.weight.data[1:]
-    new_last_linear.bias.data = model.last_linear.bias.data[1:]
-    model.last_linear = new_last_linear
+    loaded_dict = model_zoo.load_url(settings['url'])
+    new_dict=[]
+    for k,v in loaded_dict.items():
+        if not 'last_linear' in k:
+            new_dict.append((k,v))
+    import collections
+    pretrained_dict = collections.OrderedDict(new_dict)
+    model_dict = model.state_dict()
+
+    # 1. filter out unnecessary keys
+    pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+    # 2. overwrite entries in the existing state dict
+    model_dict.update(pretrained_dict)
+    # 3. load the new state dict
+    model.load_state_dict(model_dict)
     model.input_space = settings['input_space']
     model.input_size = settings['input_size']
     model.input_range = settings['input_range']
@@ -384,7 +394,11 @@ def initialize_pretrained_model(model, num_classes, settings):
 
 def senet154(num_classes=1000, pretrained='imagenet'):
     model = SENet(SEBottleneck, [3, 8, 36, 3], groups=64, reduction=16,
-                  dropout_p=0.2, num_classes=1000)
+                  dropout_p=0.2, num_classes=num_classes)
+    new_last_linear = nn.Linear(model.last_linear.in_features, num_classes)
+    new_last_linear.weight.data = model.last_linear.weight.data[1:]
+    new_last_linear.bias.data = model.last_linear.bias.data[1:]
+    model.last_linear = new_last_linear
     if pretrained is not None:
         settings = pretrained_settings['senet154'][pretrained]
         initialize_pretrained_model(model, num_classes, settings)
