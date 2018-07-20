@@ -21,13 +21,14 @@ def download_images(img_urls,save_files,size=(256,256), no_threads=6):
                     thread_pools.append(save_file)
                     break
 
-
+import shutil
 def download_image(img_url,save_file,size,total=None, progress=None):
     try:
         if os.path.exists(save_file):
             img=Image.open(save_file)
             if img is not None:
                 thread_pools.remove(save_file)
+                # shutil.copy(save_file,os.path.join('/media/milton/ssd1/research/competitions/ISIC_2018_data/data/aditional_training_data/MEL', os.path.basename(save_file)))
                 return
     except Exception as e:
         pass

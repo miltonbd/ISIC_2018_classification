@@ -91,11 +91,10 @@ def add_additional_data():
 
 from image_utils import *
 
-def add_additional_data_json(additional_dir,class_name):
+def add_additional_data_json(additional_dir,save_dir,class_name):
     """
     move aditional data to Train_256 class specific folder.
     """
-    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_"+str(height)
     json_files=glob.glob(os.path.join(additional_dir,"**","**.json"))
     img_urls=[]
     save_files=[]
@@ -151,4 +150,6 @@ if __name__ == '__main__':
     # save_class_dir_valid = os.path.join(data_dir, "Validation_upload")
     # resize_test(valid_data_upload, save_class_dir_valid);
     # train_test_split()
-    add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images_additional_MEL","MEL")
+    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/aditional_training_data"
+
+    add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images_additional_NV",save_dir,"NV")
