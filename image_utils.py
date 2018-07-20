@@ -36,6 +36,7 @@ def download_image(img_url,save_file,size,total=None, progress=None):
     if r.status_code != requests.codes.ok:
         assert False, 'Status code error: {}.'.format(r.status_code)
     with Image.open(io.BytesIO(r.content)) as img:
+        img = img.convert('RGB')
         img.save(save_file, quality=100)
         img1 = Image.open(save_file)
         img1.resize(size)
