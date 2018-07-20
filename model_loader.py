@@ -35,13 +35,17 @@ from pretrainedmodels.models.senet import senet154
 def get_senet_model(gpu,percentage_freeze):
     print("==>Loading SENet model...")
     model=senet154(num_classes=num_classes)
-    num_layers_freeze = 50
+    params_freezed_count=0
+    params_total_count=get_total_params(model)
     for i,param in enumerate(model.parameters()):
-        if i>num_layers_freeze:
+        percentage_params=params_freezed_count/params_total_count
+        if percentage_params>percentage_freeze:
             param.requires_grad = True
         else:
+            params_freezed_count+=np.prod(param.size())
             param.requires_grad = False
     summary(model.cuda(), (3, height, width))
+    print("{}% weight freezed".format(percentage_freeze*100))
     return model,"senet_154_{}_adam".format(gpu)
 
 from pretrainedmodels.models.polynet import polynet

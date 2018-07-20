@@ -21,6 +21,7 @@ from data_reader import get_test_loader_for_upload, get_validation_loader_for_up
 from models import *
 from utils import progress_bar
 from torch import optim
+from file_utils import save_to_file
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
@@ -58,18 +59,18 @@ class Classifier(object):
         model_name_str = model_details.model_name_str
         print('\n==> using model {}'.format(model_name_str))
         self.model_name_str="{}".format(model_name_str)
-        self.best_saved_model_name = "checkpoint/{}_best_model.pth".format(self.model_name_str)
+        self.best_saved_model_name = './checkpoint/{}_best_ckpt.t7'.format(self.model_name_str)
         model = model_details.model
 
         # Model
         try:
             # Load checkpoint.
             assert (os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!')
-            checkpoint = torch.load('./checkpoint/{}_ckpt.t7'.format(self.model_name_str ))
+            checkpoint = torch.load(self.best_saved_model_name)
             model.load_state_dict(checkpoint['model'].state_dict())
             self.best_acc = checkpoint['acc']
             self.start_epoch = checkpoint['epoch']
-            print('==> Resuming from checkpoint with Accuracy {}..'.format(self.best_acc))
+            print('==> Resuming Successfully from checkpoint with Accuracy {}..'.format(self.best_acc))
 
         except Exception as e:
             print('==> Resume Failed and Building model..')
@@ -118,12 +119,12 @@ class Classifier(object):
 
             progress_bar(batch_idx, len(self.trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (batch_loss, 100. * correct / total, correct, total))
-            if batch_idx > 50:
-                break
+            # if batch_idx > 0:
+            #     break
         scheduler.step(np.mean(epoch_loss))
         self.writer.add_scalar('train loss',train_loss, epoch)
 
-    def save_model(self, acc, epoch):
+    def save_model(self, acc, epoch,save_model_path):
         print('\n Saving new model with accuracy {}'.format(acc))
         state = {
             'model': self.model,
@@ -132,81 +133,119 @@ class Classifier(object):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/{}_ckpt.t7'.format(self.model_name_str ))
+        torch.save(state, save_model_path)
 
-    def test(self,epoch):
-        import torch.nn.functional as F
-        model=self.model
-        model.eval()
-        test_loss = 0
-        correct = 0
-        total = 0
-        target_all = []
-        predicted_all = []
+    def create_submit_file(self,type,model,epoch,loader_for_upload):
+        scores_for_upload = []
+        scores_for_upload.append("image,MEL,NV,BCC,AKIEC,BKL,DF,VASC")
+
         with torch.no_grad():
-            for batch_idx, (inputs, targets) in enumerate(self.testloader):
+
+            for batch_idx, (inputs, targets) in enumerate(loader_for_upload):
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
-                loss = self.criterion(outputs, targets)
-                test_loss += loss.item()
-                predicted_values, predicted = outputs.max(1)
-                predicted_reshaped = predicted.cpu().numpy().reshape(-1)
-                predicted_all = np.concatenate((predicted_all, predicted_reshaped), axis=0)
-                targets_reshaped = targets.data.cpu().numpy().reshape(-1)
-                target_all = np.concatenate((target_all, targets_reshaped), axis=0)
-                total += targets.size(0)
-                correct += predicted.eq(targets).sum().item()
-                progress_bar(batch_idx, len(self.testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                             % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
                 start_index = batch_idx * self.model_details.batch_size
-                end_index =min( start_index + self.model_details.batch_size, len(self.testloader.dataset))
-                # j=0
-                # out_probs=F.softmax(outputs,dim=1)
-                # for index in range(start_index,end_index):
-                #     out=predicted_values[j]
-                #     image=self.testloader.dataset.images[index][0]
-                #     images.append(image)
-                #     image_id = os.path.basename(image).split('.')[0]
-                #     probs=out_probs.cpu().data.numpy()[j]
-                #     #  score_row = "{id} {mel:.3f} {nv:.3f} {bcc:.3f} {akiec:.3f} {bkl:.3f} {df:.3f} {vasc:.3f}".format(id=image_id,**probs)
-                #     score_row = "{id},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}".format(id=image_id,*probs)
-                #     scores_for_upload.append(score_row)
-                #     j+=1
+                end_index = min(start_index + self.model_details.batch_size, len(loader_for_upload.dataset))
+                j = 0
+                out_probs = F.softmax(outputs, dim=1)
+                for index in range(start_index, end_index):
+                    image = loader_for_upload.dataset.images[index]
+                    image_id = os.path.basename(image).split('.')[0]
+                    probs = out_probs.cpu().data.numpy()[j]
+                    #  score_row = "{id} {mel:.3f} {nv:.3f} {bcc:.3f} {akiec:.3f} {bkl:.3f} {df:.3f} {vasc:.3f}".format(id=image_id,**probs)
+                    score_row = "{id},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}".format(id=image_id, *probs)
+                    scores_for_upload.append(score_row)
+                    j += 1
+                    progress_bar(batch_idx,len(loader_for_upload),"{} creating submission file".format(type))
+            csv__format = 'res/result_{}_epoch_{}.csv'.format(type,epoch)
+            create_dir_if_not_exists('res')
+            save_to_file(csv__format, scores_for_upload)
+            print("File saved:{}".format(csv__format))
 
-        # Save checkpoint.
-        acc = 100. * correct / total
-        self.writer.add_scalar('test accuracy', acc, epoch)
-        self.writer.add_scalar('test loss', test_loss, epoch)
+    def test(self, epoch):
+        import torch.nn.functional as F
+        model = self.model
+        model.eval()
+
         from file_utils import save_to_file
-        print("Accuracy:{}".format(acc))
-
-        if acc > self.best_acc:
-            self.save_model(acc, epoch)
-            self.best_acc = acc
-            scores_for_upload = []
-            scores_for_upload.append("image,MEL,NV,BCC,AKIEC,BKL,DF,VASC")
-
-            with torch.no_grad():
-                loader_for_upload = get_validation_loader_for_upload(self.model_details.batch_size)
-                for batch_idx, (inputs, targets) in enumerate(loader_for_upload):
-                    inputs, targets = inputs.to(device), targets.to(device)
-                    outputs = model(inputs)
-                    start_index = batch_idx * self.model_details.batch_size
-                    end_index = min(start_index + self.model_details.batch_size, len(loader_for_upload.dataset))
-                    j = 0
-                    out_probs = F.softmax(outputs, dim=1)
-                    for index in range(start_index, end_index):
-                        image = loader_for_upload.dataset.images[index]
-                        image_id = os.path.basename(image).split('.')[0]
-                        probs = out_probs.cpu().data.numpy()[j]
-                        #  score_row = "{id} {mel:.3f} {nv:.3f} {bcc:.3f} {akiec:.3f} {bkl:.3f} {df:.3f} {vasc:.3f}".format(id=image_id,**probs)
-                        score_row = "{id},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}".format(id=image_id, *probs)
-                        scores_for_upload.append(score_row)
-                        j += 1
-                save_to_file('res/result.csv', scores_for_upload)
+        epoch_saved_model_name = './checkpoint/{}_epoch_{}_ckpt.t7'.format(self.model_name_str, epoch)
 
 
-        cm = metrics.confusion_matrix(target_all, predicted_all)
-        print("\nConfsusion metrics: \n{}".format(cm))
+        self.save_model(100, epoch,epoch_saved_model_name)
+        test_loader=get_test_loader_for_upload(self.model_details.batch_size)
+        val_loader=get_validation_loader_for_upload(self.model_details.batch_size)
+
+        self.create_submit_file('valid',model,epoch,val_loader)
+        self.create_submit_file('test',model,epoch,test_loader)
+
+        # if acc>self.best_acc:
+        #     self.best_acc = acc
+        #     self.save_model(acc, epoch, best_saved_model_name)
+
+
+    #
+    # def validate(self,epoch):
+    #     import torch.nn.functional as F
+    #     model=self.model
+    #     model.eval()
+    #     test_loss = 0
+    #     correct = 0
+    #     total = 0
+    #     target_all = []
+    #     predicted_all = []
+    #     with torch.no_grad():
+    #         for batch_idx, (inputs, targets) in enumerate(self.testloader):
+    #             inputs, targets = inputs.to(device), targets.to(device)
+    #             outputs = model(inputs)
+    #             loss = self.criterion(outputs, targets)
+    #             test_loss += loss.item()
+    #             predicted_values, predicted = outputs.max(1)
+    #             predicted_reshaped = predicted.cpu().numpy().reshape(-1)
+    #             predicted_all = np.concatenate((predicted_all, predicted_reshaped), axis=0)
+    #             targets_reshaped = targets.data.cpu().numpy().reshape(-1)
+    #             target_all = np.concatenate((target_all, targets_reshaped), axis=0)
+    #             total += targets.size(0)
+    #             correct += predicted.eq(targets).sum().item()
+    #             progress_bar(batch_idx, len(self.testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+    #                          % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+    #             start_index = batch_idx * self.model_details.batch_size
+    #             end_index =min( start_index + self.model_details.batch_size, len(self.testloader.dataset))
+    #             # j=0
+    #             # out_probs=F.softmax(outputs,dim=1)
+    #             # for index in range(start_index,end_index):
+    #             #     out=predicted_values[j]
+    #             #     image=self.testloader.dataset.images[index][0]
+    #             #     images.append(image)
+    #             #     image_id = os.path.basename(image).split('.')[0]
+    #             #     probs=out_probs.cpu().data.numpy()[j]
+    #             #     #  score_row = "{id} {mel:.3f} {nv:.3f} {bcc:.3f} {akiec:.3f} {bkl:.3f} {df:.3f} {vasc:.3f}".format(id=image_id,**probs)
+    #             #     score_row = "{id},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}".format(id=image_id,*probs)
+    #             #     scores_for_upload.append(score_row)
+    #             #     j+=1
+    #
+    #     # Save checkpoint.
+    #     acc = 100. * correct / total
+    #     self.writer.add_scalar('test accuracy', acc, epoch)
+    #     self.writer.add_scalar('test loss', test_loss, epoch)
+    #     from file_utils import save_to_file
+    #     print("Accuracy:{}".format(acc))
+    #     epoch_saved_model_name = './checkpoint/{}_epoch_{}_ckpt.t7'.format(self.model_name_str, epoch)
+    #
+    #     """
+    #     on every epoch a model will be saved, a validation and test result fiel will be gnerated.
+    #     submit those files on evaluation server, if they perform well replace the best model with new model and resume training.
+    #     """
+    #
+    #     self.save_model(acc, epoch, epoch_saved_model_name)
+    #
+    #     # if True:
+    #     #     self.save_model(acc, epoch,epoch_saved_model_name)
+    #     # if acc>self.best_acc:
+    #     #     self.best_acc = acc
+    #     #     self.save_model(acc, epoch, best_saved_model_name)
+    #
+    #
+    #     cm = metrics.confusion_matrix(target_all, predicted_all)
+    #     print("\nConfsusion metrics: \n{}".format(cm))
 
 

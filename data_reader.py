@@ -64,7 +64,7 @@ def get_data(files):
     print("mel: {}, nv: {}, bcc:{}, akiec:{},bkl:{},df:{}, vasc:{}".format(*counts))
     return np.concatenate([mel,nv,bcc,akiec,bkl,df,vasc],axis=0)
 def get_train_data():
-    files=glob.glob(os.path.join(data_dir,'Train_512/**/**.jpg'))
+    files=glob.glob(os.path.join(data_dir,'Train_512_all/**/**.jpg'))
     data = []
     mel = []
     nv = []
@@ -120,12 +120,11 @@ class DatasetReader(Dataset):
             transforms.CenterCrop(480),
             RandomCrop([400,400]),
             RandomHorizontalFlip(p=.2),
-            # ColorJitter(.6),
-            # RandomVerticalFlip(p=.2),
+            ColorJitter(.6),
+            RandomVerticalFlip(p=.2),
             # RandomGrayscale(p=.2),
-            # transforms.RandomRotation(10),
-            # transforms.RandomAffine(10),
-            # ColorJitter(.6),
+            transforms.RandomRotation(10),
+            transforms.RandomAffine(10),
             transforms.ToTensor(),
             # transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         ]);
@@ -154,20 +153,6 @@ class DatasetReader(Dataset):
     def __len__(self):
         return len(self.images)
 
-def get_data_loader(batch_size):
-    train_data_set = DatasetReader(get_train_data(),"train")
-    validation_data_set = DatasetReader(get_validation_data(),"valid")
-    trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=batch_size, shuffle=True,
-                                              num_workers=2)
-    valloader = torch.utils.data.DataLoader(validation_data_set, batch_size=batch_size, shuffle=False,
-                                              num_workers=2)
-    return (trainloader, valloader)
-
-def test():
-    trainloader, valloader = get_data_loader(100)
-    for idx, (inputs, targets) in enumerate(valloader):
-        print(inputs.shape)
-
 
 
 class TestDatasetReader(Dataset):
@@ -191,6 +176,22 @@ class TestDatasetReader(Dataset):
 
     def __len__(self):
         return len(self.images)
+
+
+def get_data_loader(batch_size):
+    train_data_set = DatasetReader(get_train_data(),"train")
+    validation_data_set = TestDatasetReader(get_validation_data())
+    trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=batch_size, shuffle=True,
+                                              num_workers=2)
+    valloader = torch.utils.data.DataLoader(validation_data_set, batch_size=batch_size, shuffle=False,
+                                              num_workers=2)
+    return (trainloader, get_test_loader_for_upload(batch_size))
+
+def test():
+    trainloader, valloader = get_data_loader(100)
+    for idx, (inputs, targets) in enumerate(valloader):
+        print(inputs.shape)
+
 
 def get_validation_loader_for_upload(batch_size):
     test_files=glob.glob("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Validation_upload/**.jpg")

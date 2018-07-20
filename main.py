@@ -50,7 +50,7 @@ def get_optimizer(model_trainer):
 class ModelDetails(object):
     def __init__(self,gpu):
         self.model,self.model_name_str = get_model(gpu)
-        self.batch_size=16
+        self.batch_size=28
         self.epochs = 200
         self.logs_dir  = "logs/{}/{}".format(gpu,self.model_name_str)
         self.augment_images = augment_images

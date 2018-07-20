@@ -76,7 +76,7 @@ def add_additional_data():
     """
     move aditional data to Train_256 class specific folder.
     """
-    additional_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_aditional"
+    additional_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/aditional_training_data"
     save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_512"
     additonal_dirs=glob.glob(os.path.join(additional_dir,"*"))
     for dirname in additonal_dirs:
@@ -88,6 +88,7 @@ def add_additional_data():
             img = Image.open(filepath)
             img = img.resize((height, width))
             img.save(save_file)
+
 
 from image_utils import *
 
@@ -142,15 +143,15 @@ def resize_test(test_data,save_class_dir):
 
 
 if __name__ == '__main__':
-    # test_data = glob.glob(
-    #     "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Test_Input/**.jpg")
-    # save_class_dir_test = os.path.join(data_dir, "Test_512")
+    test_data = glob.glob(
+        "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Test_Input/**.jpg")
+    save_class_dir_test = os.path.join(data_dir, "Test_512")
     #
     # valid_data_upload = glob.glob(
     #     "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Validation_Input/**.jpg")
-    # save_class_dir_valid = os.path.join(data_dir, "Validation_upload")
-    # resize_test(valid_data_upload, save_class_dir_valid);
+    # save_class_dir_valid = os.path.join(data_dir, "Validation_test")
+    resize_test(test_data, save_class_dir_test);
     # train_test_split()
-    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/aditional_training_data"
-
+    # save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/aditional_training_data"
+    # add_additional_data()
     # add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images_additional_NV",save_dir,"NV")
