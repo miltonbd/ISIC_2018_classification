@@ -23,6 +23,14 @@ def download_images(img_urls,save_files,size=(256,256), no_threads=6):
 
 
 def download_image(img_url,save_file,size,total=None, progress=None):
+    try:
+        if os.path.exists(save_file):
+            img=Image.open(save_file)
+            if img is not None:
+                thread_pools.remove(save_file)
+                return
+    except Exception as e:
+        pass
     progress_bar(progress,total,"Downloaded: {}".format(save_file))
     r = requests.get(img_url)
     if r.status_code != requests.codes.ok:

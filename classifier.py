@@ -58,6 +58,7 @@ class Classifier(object):
         model_name_str = model_details.model_name_str
         print('\n==> using model {}'.format(model_name_str))
         self.model_name_str="{}".format(model_name_str)
+        self.best_saved_model_name = "checkpoint/{}_best_model.pth".format(self.model_name_str)
         model = model_details.model
 
         # Model

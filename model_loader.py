@@ -42,7 +42,7 @@ def get_senet_model(gpu,percentage_freeze):
         else:
             param.requires_grad = False
     summary(model.cuda(), (3, height, width))
-    return model,"senet_152_{}_adam".format(gpu)
+    return model,"senet_154_{}_adam".format(gpu)
 
 from pretrainedmodels.models.polynet import polynet
 

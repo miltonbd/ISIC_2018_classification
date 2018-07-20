@@ -117,7 +117,7 @@ class DatasetReader(Dataset):
         self.mode=mode
         self.images=np.asarray(images)
         self.transform_train_image=transforms.Compose([
-            RandomCrop([224,224]),
+            RandomCrop([400,400]),
             RandomHorizontalFlip(p=.2),
             # ColorJitter(.6),
             # RandomVerticalFlip(p=.2),
@@ -130,7 +130,7 @@ class DatasetReader(Dataset):
         ]);
 
         self.transform_test_image = transforms.Compose([
-            transforms.Resize([224, 224]),
+            transforms.Resize([400, 400]),
             transforms.ToTensor()]);
 
 

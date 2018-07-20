@@ -95,7 +95,7 @@ def add_additional_data_json(additional_dir,class_name):
     """
     move aditional data to Train_256 class specific folder.
     """
-    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_"+height
+    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_"+str(height)
     json_files=glob.glob(os.path.join(additional_dir,"**","**.json"))
     img_urls=[]
     save_files=[]
@@ -106,7 +106,7 @@ def add_additional_data_json(additional_dir,class_name):
         save_file=os.path.join(save_dir,class_name,"{}.jpg".format(json_data['name']))
         img_urls.append(url)
         save_files.append(save_file)
-    download_images(img_urls,save_files)
+    download_images(img_urls,save_files,(512,512))
         # if os.path.exists(save_file):
         #     continue
         # download_image(url,save_file,total=len(json_files), progress=i+1)
@@ -142,18 +142,13 @@ def resize_test(test_data,save_class_dir):
 
 
 if __name__ == '__main__':
-    test_data = glob.glob(
-        "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Test_Input/**.jpg")
-    save_class_dir_test = os.path.join(data_dir, "Test_512")
-
-
-
-    valid_data_upload = glob.glob(
-        "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Validation_Input/**.jpg")
-    save_class_dir_valid = os.path.join(data_dir, "Validation_upload")
-    resize_test(valid_data_upload, save_class_dir_valid);
-
-    # / media / milton / ssd1 / research / competitions / ISIC_2018_data / data / ISIC2018_Task3_Validation_Input
+    # test_data = glob.glob(
+    #     "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Test_Input/**.jpg")
+    # save_class_dir_test = os.path.join(data_dir, "Test_512")
+    #
+    # valid_data_upload = glob.glob(
+    #     "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Validation_Input/**.jpg")
+    # save_class_dir_valid = os.path.join(data_dir, "Validation_upload")
+    # resize_test(valid_data_upload, save_class_dir_valid);
     # train_test_split()
-    # resize_valid()
-    # add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images meta_mel","MEL")
+    add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images_additional_MEL","MEL")
