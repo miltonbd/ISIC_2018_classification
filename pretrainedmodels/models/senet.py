@@ -17,7 +17,7 @@ pretrained_settings = {
         'imagenet': {
             'url': 'http://data.lip6.fr/cadene/pretrainedmodels/senet154-c7b49a05.pth',
             'input_space': 'RGB',
-            'input_size': [3, 224, 224],
+            'input_size': [3, 400, 400],
             'input_range': [0, 1],
             'mean': [0.485, 0.456, 0.406],
             'std': [0.229, 0.224, 0.225],
@@ -395,9 +395,9 @@ def initialize_pretrained_model(model, num_classes, settings):
 def senet154(num_classes=1000, pretrained='imagenet'):
     model = SENet(SEBottleneck, [3, 8, 36, 3], groups=64, reduction=16,
                   dropout_p=0.2, num_classes=num_classes)
-    new_last_linear = nn.Linear(model.last_linear.in_features, num_classes)
-    new_last_linear.weight.data = model.last_linear.weight.data[1:]
-    new_last_linear.bias.data = model.last_linear.bias.data[1:]
+    new_last_linear = nn.Linear(100352, num_classes)
+    # new_last_linear.weight.data = model.last_linear.weight.data[1:]
+    # new_last_linear.bias.data = model.last_linear.bias.data[1:]
     model.last_linear = new_last_linear
     if pretrained is not None:
         settings = pretrained_settings['senet154'][pretrained]

@@ -140,6 +140,7 @@ def resize_test(test_data,save_class_dir):
             print(idx)
 
 
+
 if __name__ == '__main__':
     # test_data = glob.glob(
     #     "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Test_Input/**.jpg")
@@ -152,4 +153,4 @@ if __name__ == '__main__':
     # train_test_split()
     save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/aditional_training_data"
 
-    add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images_additional_NV",save_dir,"NV")
+    # add_additional_data_json("/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC-images_additional_NV",save_dir,"NV")

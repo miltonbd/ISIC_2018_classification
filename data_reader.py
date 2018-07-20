@@ -10,8 +10,8 @@ import os
 from torchvision.transforms import *
 import threading
 num_classes=7
-height=224
-width=224
+height=400
+width=400
 data_set_name="ISIC 2018"
 def padd_class(data, max):
     data=np.asarray(data)
@@ -64,7 +64,7 @@ def get_data(files):
     print("mel: {}, nv: {}, bcc:{}, akiec:{},bkl:{},df:{}, vasc:{}".format(*counts))
     return np.concatenate([mel,nv,bcc,akiec,bkl,df,vasc],axis=0)
 def get_train_data():
-    files=glob.glob(os.path.join(data_dir,'Train_256/**/**.jpg'))
+    files=glob.glob(os.path.join(data_dir,'Train_512/**/**.jpg'))
     data = []
     mel = []
     nv = []
@@ -117,6 +117,7 @@ class DatasetReader(Dataset):
         self.mode=mode
         self.images=np.asarray(images)
         self.transform_train_image=transforms.Compose([
+            transforms.CenterCrop(480),
             RandomCrop([400,400]),
             RandomHorizontalFlip(p=.2),
             # ColorJitter(.6),
@@ -175,7 +176,7 @@ class TestDatasetReader(Dataset):
     def __init__(self, images ):
         self.images=np.asarray(images)
         self.transform_test_image = transforms.Compose([
-            transforms.Resize([224, 224]),
+            transforms.Resize([400, 400]),
             transforms.ToTensor()]);
 
 
