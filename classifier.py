@@ -58,8 +58,14 @@ class Classifier(object):
         print('\n==> using model {}'.format(model_name_str))
         self.model_name_str="{}".format(model_name_str)
         self.best_saved_model_name = './checkpoint/{}_best_ckpt.t7'.format(self.model_name_str)
+        print(self.best_saved_model_name)
         model = model_details.model
 
+        if self.use_cuda:
+            model=model.cuda()
+            model = torch.nn.DataParallel(model)
+            cudnn.benchmark = True
+        self.model=model
         # Model
         try:
             # Load checkpoint.
@@ -71,13 +77,9 @@ class Classifier(object):
             print('==> Resuming Successfully from checkpoint with Accuracy {}..'.format(self.best_acc))
 
         except Exception as e:
+            print(e)
             print('==> Resume Failed and Building model..')
 
-        if self.use_cuda:
-            model=model.cuda()
-            model = torch.nn.DataParallel(model)
-            cudnn.benchmark = True
-        self.model=model
         optimizer, scheduler=self.model_details.get_optimizer(self)
         self.optimizer=optimizer
         self.scheduler=scheduler
@@ -239,11 +241,11 @@ class Classifier(object):
         # self.save_model(acc, epoch, epoch_saved_model_name)
 
         # if True:
-        #     self.save_model(acc, epoch,epoch_saved_model_name)
-        if acc>self.best_acc:
-            self.best_acc = acc
-            self.save_model(acc, epoch, self.best_saved_model_name)
-            self.test(epoch)
+        self.save_model(acc, epoch,epoch_saved_model_name)
+        # if acc>self.best_acc:
+        #     self.best_acc = acc
+        self.save_model(acc, epoch, self.best_saved_model_name)
+        self.test(epoch)
 
 
         cm = metrics.confusion_matrix(target_all, predicted_all)
