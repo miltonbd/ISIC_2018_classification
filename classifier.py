@@ -243,7 +243,7 @@ class Classifier(object):
         if acc>self.best_acc:
             self.best_acc = acc
             self.save_model(acc, epoch, self.best_saved_model_name)
-            self.test()
+            self.test(epoch)
 
 
         cm = metrics.confusion_matrix(target_all, predicted_all)
