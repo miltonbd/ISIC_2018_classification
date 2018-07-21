@@ -33,16 +33,13 @@ def resize(files,save_dir):
     files=np.asarray(files)
     images=files[:,0]
     labels=files[:,1]
-    for idx, path in enumerate(images):
-        class_dir=class_names[int(labels[idx])]
-        save_class_dir=os.path.join(save_dir, class_dir)
-        if not os.path.exists(save_class_dir):
-            os.makedirs(save_class_dir)
+
+    def resize_thread(path,save_class_dir):
         img=Image.open(path)
         img_np_de=np.asarray(img)
         if img_np_de.ndim!=3:
             print("{} {}".format(path,img_np_de.shape))
-            continue
+            return
         # print(save_class_dir)
         save_file=os.path.join(save_class_dir,os.path.basename(path).split(".")[0]+".jpg")
 
@@ -56,16 +53,29 @@ def resize(files,save_dir):
             img = Image.open(save_file)
             img = img.resize((height, width))
             img.save(save_file)
-            continue
+            return
         img=img.resize((height,width))
         img.save(save_file)
         if idx%500==0:
             print(idx)
+    threads=[]
+    import threading
+    for idx, path in enumerate(images):
+        class_dir=class_names[int(labels[idx])]
+        save_class_dir=os.path.join(save_dir, class_dir)
+        if not os.path.exists(save_class_dir):
+            os.makedirs(save_class_dir)
+        t=threading.Thread(target=resize_thread, args=(path, save_class_dir))
+        t.start()
+    for t in threads:
+        t.join()
+
+
 
 def train_test_split():
     data = read_train_data_from_csv()
     save_dir = os.path.join(data_dir,"Train_512")
-    train_end_count = int(len(data) * .7)
+    train_end_count = int(len(data) * .8)
     train_data = data[0:train_end_count]
     valid_data = data[train_end_count:]
     resize(train_data,save_dir)
@@ -141,16 +151,24 @@ def resize_test(test_data,save_class_dir):
             print(idx)
 
 
+def resize_train_from_original():
+    train_data = read_train_data_from_csv()
+    save_dir = os.path.join(data_dir, "Train_512")
+    resize(train_data, save_dir)
+
 
 if __name__ == '__main__':
-    test_data = glob.glob(
-        "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Test_Input/**.jpg")
-    save_class_dir_test = os.path.join(data_dir, "Test_512")
+    train_test_split()
+    # resize_train_from_original()
+    # test_data = glob.glob(
+    #     "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Test_Input/**.jpg")
+    # save_class_dir_test = os.path.join(data_dir, "Test_512")
+
     #
     # valid_data_upload = glob.glob(
     #     "/media/milton/ssd1/research/competitions/ISIC_2018_data/data/ISIC2018_Task3_Validation_Input/**.jpg")
     # save_class_dir_valid = os.path.join(data_dir, "Validation_test")
-    resize_test(test_data, save_class_dir_test);
+    #resize_test(test_data, save_class_dir_test);
     # train_test_split()
     # save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/aditional_training_data"
     # add_additional_data()

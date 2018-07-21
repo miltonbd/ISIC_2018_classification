@@ -22,11 +22,9 @@ use command line to run the training.
     6. bigger 500 px image size. big image tends to make
     7. save model and load from previous
     8. adversarial training, use crosssentropy, focal loss
-    9. 
-    10.BGRto RGB
+    9. train atleast 20 epoch.
+    10.BGR to RGB
     11.     
-    
-
 """
 
 def get_loss_function(classifier):
@@ -43,14 +41,19 @@ def get_optimizer(model_trainer):
     # model_trainer.writer.add_scalar("epsilon", epsilon)
     # optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
     #                      lr=0.001,momentum=momentum,weight_decay=weight_decay)
-    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
-                            lr=0.00001,)
-    return optimizer
+    params=filter(lambda p: p.requires_grad, model_trainer.model.parameters())
+    # optimizer = optim.Adam(params,
+    #                         lr=0.00001,)
+    optimizer = torch.optim.SGD(params, lr=0.0001, momentum=0.9)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')  # set up scheduler
+
+    #todo SGD
+    return (optimizer,scheduler)
 
 class ModelDetails(object):
     def __init__(self,gpu):
         self.model,self.model_name_str = get_model(gpu)
-        self.batch_size=28
+        self.batch_size=32
         self.epochs = 200
         self.logs_dir  = "logs/{}/{}".format(gpu,self.model_name_str)
         self.augment_images = augment_images
@@ -58,6 +61,7 @@ class ModelDetails(object):
         self.get_loss_function = get_loss_function
         self.get_optimizer = get_optimizer
         self.dataset=data_set_name
+        self.weight_freeze_epochs=3
 
 def start_training(gpu):
     model_details=ModelDetails(gpu)
@@ -65,9 +69,11 @@ def start_training(gpu):
     clasifier.load_data()
     clasifier.load_model()
     for epoch in range(clasifier.start_epoch, clasifier.start_epoch + model_details.epochs):
+        if epoch > model_details.weight_freeze_epochs:
+            unfreeze_all_weights(model_details.model)
         try:
           clasifier.train(epoch)
-          clasifier.test(epoch)
+          clasifier.validate(epoch)
         except KeyboardInterrupt:
           clasifier.test(epoch)
           break;

@@ -35,6 +35,42 @@ from pretrainedmodels.models.senet import senet154
 def get_senet_model(gpu,percentage_freeze):
     print("==>Loading SENet model...")
     model=senet154(num_classes=num_classes)
+    # params_freezed_count=0
+    # params_total_count=get_total_params(model)
+    # for i,param in enumerate(model.parameters()):
+    #     percentage_params=params_freezed_count/params_total_count
+    #     if percentage_params>percentage_freeze:
+    #         param.requires_grad = True
+    #     else:
+    #         params_freezed_count+=np.prod(param.size())
+    #         param.requires_grad = False
+    """
+    children(), named_children() will get iterators which may be sequential or blocks as they are added.
+    modules() will returns all the raw modules from inside the sequential. 
+    """
+    childrens=model.named_children()
+    for name,cg in childrens:
+        for param in cg.parameters():
+            if name=='last_linear':
+                param.requires_grad = True
+            else:
+                param.requires_grad=False
+    summary(model.cuda(), (3, height, width))
+    # modules=model.modules()
+    # for mod in modules:
+    #     pass
+    return model,"senet_154_{}_SGD_lr_decay".format(gpu)
+
+def unfreeze_all_weights(model):
+    params_total_count=get_total_params(model)
+    for i,param in enumerate(model.parameters()):
+            param.requires_grad = True
+
+    summary(model.cuda(), (3, height, width))
+    print("All weights Unfreezed".format(params_total_count))
+    return model
+
+def freeze_percentage_weights(model,percentage_freeze):
     params_freezed_count=0
     params_total_count=get_total_params(model)
     for i,param in enumerate(model.parameters()):
@@ -46,7 +82,7 @@ def get_senet_model(gpu,percentage_freeze):
             param.requires_grad = False
     summary(model.cuda(), (3, height, width))
     print("{}% weight freezed".format(percentage_freeze*100))
-    return model,"senet_154_{}_adam".format(gpu)
+    return model
 
 from pretrainedmodels.models.polynet import polynet
 
