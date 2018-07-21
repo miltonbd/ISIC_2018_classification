@@ -120,7 +120,7 @@ class Classifier(object):
 
             progress_bar(batch_idx, len(self.trainloader), 'Train Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (batch_loss, 100. * correct / total, correct, total))
-            # if batch_idx > 0:
+            # if batch_idx > 10:
             #     break
         self.writer.add_scalar('train loss',train_loss, epoch)
 
@@ -141,8 +141,8 @@ class Classifier(object):
 
         with torch.no_grad():
 
-            for batch_idx, (inputs, targets) in enumerate(loader_for_upload):
-                inputs, targets = inputs.to(device), targets.to(device)
+            for batch_idx, (inputs) in enumerate(loader_for_upload):
+                inputs = inputs.to(device)
                 outputs = model(inputs)
                 start_index = batch_idx * self.model_details.batch_size
                 end_index = min(start_index + self.model_details.batch_size, len(loader_for_upload.dataset))
@@ -157,7 +157,7 @@ class Classifier(object):
                     scores_for_upload.append(score_row)
                     j += 1
                     progress_bar(batch_idx,len(loader_for_upload),"{} creating submission file".format(type))
-            csv__format = 'res/result_{}_epoch_{}.csv'.format(type,epoch)
+            csv__format = 'res/result_{}_epoch_{}_valloss_{:.3f}.csv'.format(type,epoch,self.val_loss)
             create_dir_if_not_exists('res')
             save_to_file(csv__format, scores_for_upload)
             print("File saved:{}".format(csv__format))
@@ -195,6 +195,8 @@ class Classifier(object):
         predicted_all = []
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(self.testloader):
+                # if batch_idx > 10:
+                #     break
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = self.criterion(outputs, targets)
@@ -225,6 +227,7 @@ class Classifier(object):
 
         # Save checkpoint.
         self.scheduler.step(val_loss)
+        self.val_loss=val_loss
         acc = 100. * correct / total
         self.writer.add_scalar('test accuracy', acc, epoch)
         self.writer.add_scalar('test loss', val_loss, epoch)
@@ -248,5 +251,5 @@ class Classifier(object):
 
         cm = metrics.confusion_matrix(target_all, predicted_all)
         print("\nConfsusion metrics: \n{}".format(cm))
-
+        self.test(epoch)
 
