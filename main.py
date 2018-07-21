@@ -72,7 +72,7 @@ def start_training(gpu):
             unfreeze_all_weights(model_details.model)
         try:
           clasifier.train(epoch)
-          # clasifier.validate(epoch)
+          clasifier.validate(epoch)
         except KeyboardInterrupt:
           clasifier.test(epoch)
           break;

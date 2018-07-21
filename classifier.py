@@ -169,7 +169,6 @@ class Classifier(object):
 
         epoch_saved_model_name = './checkpoint/{}_epoch_{}_ckpt.t7'.format(self.model_name_str, epoch)
 
-
         self.save_model(100, epoch,epoch_saved_model_name)
         test_loader=get_test_loader_for_upload(self.model_details.batch_size)
         val_loader=get_validation_loader_for_upload(self.model_details.batch_size)
@@ -244,6 +243,7 @@ class Classifier(object):
         if acc>self.best_acc:
             self.best_acc = acc
             self.save_model(acc, epoch, self.best_saved_model_name)
+            self.test()
 
 
         cm = metrics.confusion_matrix(target_all, predicted_all)
