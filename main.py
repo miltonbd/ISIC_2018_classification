@@ -39,8 +39,7 @@ def get_optimizer(model_trainer):
     weight_decay=5e-4
     # model_trainer.writer.add_scalar("leanring rate", learning_rate)
     # model_trainer.writer.add_scalar("epsilon", epsilon)
-    # optimizer=optim.SGD(filter(lambda p: p.requires_grad, model_trainer.model.parameters()),
-    #                      lr=0.001,momentum=momentum,weight_decay=weight_decay)
+
     params=filter(lambda p: p.requires_grad, model_trainer.model.parameters())
     # optimizer = optim.Adam(params,
     #                         lr=0.00001,)
@@ -53,7 +52,7 @@ def get_optimizer(model_trainer):
 class ModelDetails(object):
     def __init__(self,gpu):
         self.model,self.model_name_str = get_model(gpu)
-        self.batch_size=32
+        self.batch_size=12
         self.epochs = 200
         self.logs_dir  = "logs/{}/{}".format(gpu,self.model_name_str)
         self.augment_images = augment_images
@@ -69,11 +68,11 @@ def start_training(gpu):
     clasifier.load_data()
     clasifier.load_model()
     for epoch in range(clasifier.start_epoch, clasifier.start_epoch + model_details.epochs):
-        if epoch > model_details.weight_freeze_epochs:
+        if epoch == model_details.weight_freeze_epochs:
             unfreeze_all_weights(model_details.model)
         try:
           clasifier.train(epoch)
-          clasifier.validate(epoch)
+          # clasifier.validate(epoch)
         except KeyboardInterrupt:
           clasifier.test(epoch)
           break;

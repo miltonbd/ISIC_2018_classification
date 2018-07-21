@@ -4,24 +4,22 @@ from __future__ import print_function
 from sklearn import metrics
 import torch
 
-import numpy as np
-import os
 from tensorboardX import SummaryWriter
-from torch.autograd import Variable
 from torchsummary import summary
 # from data_reader_isic import get_data_loaders
-from utils import *
+from utils.utils_all import *
 from torch.backends import cudnn
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-import torch.nn.functional as F
 import os
 import numpy as np
 import argparse
 from data_reader import get_test_loader_for_upload, get_validation_loader_for_upload
 from models import *
-from utils import progress_bar
-from torch import optim
+from utils.utils_all import progress_bar
 from file_utils import save_to_file
+from data_reader import height, width
+from utils.pytorch_utils import *
+
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
@@ -88,17 +86,21 @@ class Classifier(object):
     def adjust_weight_with_steps(self):
         pass
 
+
     # Training
     def train(self, epoch):
-        print('\nEpoch: %d' % epoch)
+        print('\nTraining Epoch: %d' % epoch)
+        show_params_trainable(self.model_details.model)
         model=self.model
         model.train()
         train_loss = 0
         correct = 0
         total = 0
         epoch_loss = []
-
+        show_params_trainable(model)
         for batch_idx, (inputs, targets) in enumerate(self.trainloader):
+            # if batch_idx > 10:
+            #     break
             step = epoch * len(self.trainloader) + batch_idx
             # if not self.augment_images==None:
             #     inputs=torch.from_numpy(self.augment_images(inputs.numpy()))
@@ -118,10 +120,9 @@ class Classifier(object):
             total += targets.size(0)
             correct += predicted.eq(targets.data).cpu().sum()
 
-            progress_bar(batch_idx, len(self.trainloader), 'Train Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                         % (batch_loss, 100. * correct / total, correct, total))
-            # if batch_idx > 10:
-            #     break
+            progress_bar(batch_idx, len(self.trainloader), 'Train Epoch:%d, Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                         % (epoch, batch_loss, 100. * correct / total, correct, total))
+
         self.writer.add_scalar('train loss',train_loss, epoch)
 
     def save_model(self, acc, epoch,save_model_path):
@@ -163,11 +164,9 @@ class Classifier(object):
             print("File saved:{}".format(csv__format))
 
     def test(self, epoch):
-        import torch.nn.functional as F
         model = self.model
         model.eval()
 
-        from file_utils import save_to_file
         epoch_saved_model_name = './checkpoint/{}_epoch_{}_ckpt.t7'.format(self.model_name_str, epoch)
 
 
@@ -185,7 +184,6 @@ class Classifier(object):
 
     #
     def validate(self,epoch):
-        import torch.nn.functional as F
         model=self.model
         model.eval()
         val_loss = 0
@@ -231,7 +229,6 @@ class Classifier(object):
         acc = 100. * correct / total
         self.writer.add_scalar('test accuracy', acc, epoch)
         self.writer.add_scalar('test loss', val_loss, epoch)
-        from file_utils import save_to_file
         print("Accuracy:{}".format(acc))
         epoch_saved_model_name = './checkpoint/{}_epoch_{}_ckpt.t7'.format(self.model_name_str, epoch)
 

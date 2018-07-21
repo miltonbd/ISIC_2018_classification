@@ -1,7 +1,5 @@
 from data_reader import *
-from PIL import Image
 from statics_isic import *
-from utils import *
 from file_reader_utils import *
 import csv
 

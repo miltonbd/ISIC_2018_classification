@@ -1,21 +1,11 @@
 from __future__ import print_function
 from __future__ import division
 
-from torch.utils.data import Dataset, DataLoader
 from sklearn import metrics
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.backends.cudnn as cudnn
-import numpy as np
-import os
-from tensorboardX import SummaryWriter
 from torch.autograd import Variable
-from torchsummary import summary
-from data_reader import get_data_loaders
-from utils import *
-from torch.backends import cudnn
-from augment_data import augment_images
+from utils.utils_all import *
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def test(self,model, epoch, writer):

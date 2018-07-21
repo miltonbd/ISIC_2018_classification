@@ -2,7 +2,8 @@ from torchsummary import summary
 from models.vgg import vgg19_bn
 from torch import nn
 from data_reader import *
-from utils import *
+from utils.utils_all import *
+from utils.pytorch_utils import *
 
 def get_vgg_model(gpu,percentage_freeze):
     model=vgg19_bn(True)
@@ -18,7 +19,7 @@ def get_vgg_model(gpu,percentage_freeze):
     num_layers_freeze = 30
 
     params_freezed_count=0
-    params_total_count=get_total_params(model)
+    params_total_count=get_total_trainable_params(model)
     # for i,param in enumerate(model.parameters()):
     #     percentage_params=params_freezed_count/params_total_count
     #     if percentage_params>percentage_freeze:
@@ -55,24 +56,25 @@ def get_senet_model(gpu,percentage_freeze):
                 param.requires_grad = True
             else:
                 param.requires_grad=False
-    summary(model.cuda(), (3, height, width))
+
+    print("\n SENet all weights except last layer freezed.")
+    show_params_trainable(model)
     # modules=model.modules()
     # for mod in modules:
     #     pass
     return model,"senet_154_{}_SGD_lr_decay".format(gpu)
 
 def unfreeze_all_weights(model):
-    params_total_count=get_total_params(model)
+    params_total_count=get_total_trainable_params(model)
     for i,param in enumerate(model.parameters()):
             param.requires_grad = True
-
-    summary(model.cuda(), (3, height, width))
     print("All weights Unfreezed".format(params_total_count))
+    show_params_trainable(model)
     return model
 
 def freeze_percentage_weights(model,percentage_freeze):
     params_freezed_count=0
-    params_total_count=get_total_params(model)
+    params_total_count=get_total_trainable_params(model)
     for i,param in enumerate(model.parameters()):
         percentage_params=params_freezed_count/params_total_count
         if percentage_params>percentage_freeze:
@@ -80,8 +82,10 @@ def freeze_percentage_weights(model,percentage_freeze):
         else:
             params_freezed_count+=np.prod(param.size())
             param.requires_grad = False
-    summary(model.cuda(), (3, height, width))
+
+    # summary(model.cuda(), (3, height, width))
     print("{}% weight freezed".format(percentage_freeze*100))
+    show_params_trainable(model)
     return model
 
 from pretrainedmodels.models.polynet import polynet
@@ -130,7 +134,7 @@ def get_pnas_large_model(gpu,percentage_freeze):
     print("==>Loading pnaslarge model...")
     model=pnasnet5large(num_classes=num_classes)
     params_freezed_count=0
-    params_total_count=get_total_params(model)
+    params_total_count=get_total_trainable_params(model)
     for i,param in enumerate(model.parameters()):
         percentage_params=params_freezed_count/params_total_count
         if percentage_params>percentage_freeze:
@@ -138,7 +142,7 @@ def get_pnas_large_model(gpu,percentage_freeze):
         else:
             params_freezed_count+=np.prod(param.size())
             param.requires_grad = False
-    summary(model.cuda(), (3, height, width))
+
     print("==>{}% of weight params are freezed.".format(100*params_freezed_count/params_total_count))
     return model,"pnas_large_{}_adam".format(gpu)
 

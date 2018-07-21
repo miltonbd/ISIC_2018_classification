@@ -1,11 +1,9 @@
-import os
 import io
 import requests
 from PIL import Image
-import tempfile
-from utils import *
+from utils.utils_all import *
 import threading
-import time
+
 thread_pools=[]
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True  # important to avoid
@@ -21,7 +19,7 @@ def download_images(img_urls,save_files,size=(512,512), no_threads=6):
                     thread_pools.append(save_file)
                     break
 
-import shutil
+
 def download_image(img_url,save_file,size,total=None, progress=None):
     try:
         if os.path.exists(save_file):
