@@ -74,7 +74,7 @@ def unfreeze_all_weights(model):
 
 def freeze_percentage_weights(model,percentage_freeze):
     params_freezed_count=0
-    params_total_count=get_total_trainable_params(model)
+    params_total_count=get_total_params(model)
     for i,param in enumerate(model.parameters()):
         percentage_params=params_freezed_count/params_total_count
         if percentage_params>percentage_freeze:
@@ -130,21 +130,20 @@ def get_dpn_model(gpu):
 
 from pretrainedmodels.models.pnasnet import  pnasnet5large
 
-def get_pnas_large_model(gpu,percentage_freeze):
+def get_pnas_large_model(gpu):
     print("==>Loading pnaslarge model...")
     model=pnasnet5large(num_classes=num_classes)
-    params_freezed_count=0
-    params_total_count=get_total_trainable_params(model)
-    for i,param in enumerate(model.parameters()):
-        percentage_params=params_freezed_count/params_total_count
-        if percentage_params>percentage_freeze:
-            param.requires_grad = True
-        else:
-            params_freezed_count+=np.prod(param.size())
-            param.requires_grad = False
+    childrens=model.named_children()
+    for name,cg in childrens:
+        for param in cg.parameters():
+            if name=='last_linear':
+                param.requires_grad = True
+            else:
+                param.requires_grad=False
 
-    print("==>{}% of weight params are freezed.".format(100*params_freezed_count/params_total_count))
-    return model,"pnas_large_{}_adam".format(gpu)
+    show_params_trainable(model)
+    summary(model.cuda(),(3,400,400))
+    return model,"pnas_large_{}_sgd_no_aug".format(gpu)
 
 from models.densenet import DenseNet201
 

@@ -73,7 +73,7 @@ class Classifier(object):
             checkpoint = torch.load(self.best_saved_model_name)
             model.load_state_dict(checkpoint['model'].state_dict())
             self.best_acc = checkpoint['acc']
-            self.start_epoch = checkpoint['epoch']
+            self.start_epoch = checkpoint['epoch']+1
             print('==> Resuming Successfully from checkpoint with Accuracy {}..'.format(self.best_acc))
 
         except Exception as e:
@@ -243,12 +243,11 @@ class Classifier(object):
         # if True:
         self.save_model(acc, epoch,epoch_saved_model_name)
         # if acc>self.best_acc:
-        #     self.best_acc = acc
+        self.best_acc = acc
         self.save_model(acc, epoch, self.best_saved_model_name)
         self.test(epoch)
 
 
         cm = metrics.confusion_matrix(target_all, predicted_all)
         print("\nConfsusion metrics: \n{}".format(cm))
-        self.test(epoch)
 

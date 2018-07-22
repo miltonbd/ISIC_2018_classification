@@ -334,7 +334,7 @@ class PNASNet5Large(nn.Module):
         self.relu = nn.ReLU()
         self.avg_pool = nn.AvgPool2d(7, stride=1, padding=0)
         self.dropout = nn.Dropout(0.5)
-        self.last_linear = nn.Linear(4320, num_classes)
+        self.last_linear = nn.Linear(211680, num_classes)
 
     def features(self, x):
         x_conv_0 = self.conv_0(x)

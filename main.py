@@ -16,7 +16,7 @@ use command line to run the training.
 ################## ToDo ########################
     1. download more images using image_utils and isic-arhive. Also, use more online resources for data. 
     2. use additional dasets used in https://github.com/learningtitans/isbi2017-part3
-    3. use pair augmentation, random erase
+    3. use pair augmentation, random erase (data augmentaton leads to poor accuracy if model has less capacity.)
     4. download more images for each classes.
     5. preprocessing and feature extraction
     6. bigger 500 px image size. big image tends to make
@@ -31,19 +31,18 @@ def get_loss_function(classifier):
     return get_cross_entropy(classifier)
 
 def get_model(gpu):
-    return get_senet_model(gpu,.3)
+    return get_pnas_large_model(gpu)
 
 def get_optimizer(model_trainer):
-    epsilon=1e-8
-    momentum = 0.9
-    weight_decay=5e-4
+    momentum = 0.7
+    weight_decay=5e-1
     # model_trainer.writer.add_scalar("leanring rate", learning_rate)
     # model_trainer.writer.add_scalar("epsilon", epsilon)
 
     params=filter(lambda p: p.requires_grad, model_trainer.model.parameters())
     # optimizer = optim.Adam(params,
-    #                         lr=0.00001,)
-    optimizer = torch.optim.SGD(params, lr=0.0001, momentum=0.9)
+    #                           lr=0.00001,)
+    optimizer = torch.optim.SGD(params, lr=0.00001, momentum=momentum, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')  # set up scheduler
 
     #todo SGD
@@ -52,7 +51,7 @@ def get_optimizer(model_trainer):
 class ModelDetails(object):
     def __init__(self,gpu):
         self.model,self.model_name_str = get_model(gpu)
-        self.batch_size=12
+        self.batch_size=8
         self.epochs = 200
         self.logs_dir  = "logs/{}/{}".format(gpu,self.model_name_str)
         self.augment_images = augment_images
@@ -60,7 +59,7 @@ class ModelDetails(object):
         self.get_loss_function = get_loss_function
         self.get_optimizer = get_optimizer
         self.dataset=data_set_name
-        self.weight_freeze_epochs=3
+        self.weight_freeze_epochs=2
 
 def start_training(gpu):
     model_details=ModelDetails(gpu)
@@ -69,7 +68,7 @@ def start_training(gpu):
     clasifier.load_model()
     for epoch in range(clasifier.start_epoch, clasifier.start_epoch + model_details.epochs):
         if epoch == model_details.weight_freeze_epochs:
-            unfreeze_all_weights(model_details.model)
+            freeze_percentage_weights(model_details.model,.8)
         try:
           clasifier.train(epoch)
           clasifier.validate(epoch)
