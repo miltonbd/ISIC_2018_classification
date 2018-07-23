@@ -394,7 +394,7 @@ def initialize_pretrained_model(model, num_classes, settings):
 
 def senet154(num_classes=1000, pretrained='imagenet'):
     model = SENet(SEBottleneck, [3, 8, 36, 3], groups=64, reduction=16,
-                  dropout_p=0.2, num_classes=num_classes)
+                  dropout_p=0.6, num_classes=num_classes)
     new_last_linear = nn.Linear(100352, num_classes)
     # new_last_linear.weight.data = model.last_linear.weight.data[1:]
     # new_last_linear.bias.data = model.last_linear.bias.data[1:]

@@ -33,7 +33,7 @@ def get_vgg_model(gpu,percentage_freeze):
 
 from pretrainedmodels.models.senet import senet154
 
-def get_senet_model(gpu,percentage_freeze):
+def get_senet_model(gpu):
     print("==>Loading SENet model...")
     model=senet154(num_classes=num_classes)
     # params_freezed_count=0
@@ -49,6 +49,13 @@ def get_senet_model(gpu,percentage_freeze):
     children(), named_children() will get iterators which may be sequential or blocks as they are added.
     modules() will returns all the raw modules from inside the sequential. 
     """
+
+    # modules=model.modules()
+    # for mod in modules:
+    #     pass
+    return model,"senet_154_{}".format(gpu)
+
+def freeze_all_weighs_except_last_layer(model):
     childrens=model.named_children()
     for name,cg in childrens:
         for param in cg.parameters():
@@ -59,10 +66,7 @@ def get_senet_model(gpu,percentage_freeze):
 
     print("\n SENet all weights except last layer freezed.")
     show_params_trainable(model)
-    # modules=model.modules()
-    # for mod in modules:
-    #     pass
-    return model,"senet_154_{}_SGD_lr_decay".format(gpu)
+    return model
 
 def unfreeze_all_weights(model):
     params_total_count=get_total_trainable_params(model)

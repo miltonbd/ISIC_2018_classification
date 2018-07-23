@@ -160,7 +160,11 @@ class Classifier(object):
                     scores_for_upload.append(score_row)
                     j += 1
                     progress_bar(batch_idx,len(loader_for_upload),"{} creating submission file".format(type))
-            csv__format = 'res/result_{}_epoch_{}_valloss_{:.3f}.csv'.format(type,epoch,self.val_loss)
+            gpu = self.model_details.gpu
+            if gpu == None:
+                csv__format = 'res/result_{}_epoch_{}_valloss_{:.3f}.csv'.format(type,epoch,self.val_loss)
+            else:
+                csv__format = 'res/result_gpu_{},{}_epoch_{}_valloss_{:.3f}.csv'.format(gpu,type,epoch,self.val_loss)
             create_dir_if_not_exists('res')
             save_to_file(csv__format, scores_for_upload)
             print("File saved:{}".format(csv__format))
@@ -176,8 +180,7 @@ class Classifier(object):
         val_loader=get_validation_loader_for_upload(self.model_details.batch_size)
 
         self.create_submit_file('valid',model,epoch,val_loader)
-        self.create_submit_file('test',model,epoch,test_loader)
-
+        # self.create_submit_file('test',model,epoch,test_loader)
         # if acc>self.best_acc:
         #     self.best_acc = acc
         #     self.save_model(acc, epoch, best_saved_model_name)
@@ -228,26 +231,17 @@ class Classifier(object):
         self.scheduler.step(val_loss)
         self.val_loss=val_loss
         acc = 100. * correct / total
+        self.val_acc=acc
         self.writer.add_scalar('test accuracy', acc, epoch)
         self.writer.add_scalar('test loss', val_loss, epoch)
         print("Accuracy:{}".format(acc))
-        epoch_saved_model_name = './checkpoint/{}_epoch_{}_ckpt.t7'.format(self.model_name_str, epoch)
-
         """
         on every epoch a model will be saved, a validation and test result fiel will be gnerated.
         submit those files on evaluation server, if they perform well replace the best model with new model and resume training.
         """
 
-        # self.save_model(acc, epoch, epoch_saved_model_name)
-
-        # if True:
-        self.save_model(acc, epoch,epoch_saved_model_name)
-        # if acc>self.best_acc:
-        self.best_acc = acc
-        self.save_model(acc, epoch, self.best_saved_model_name)
-        self.test(epoch)
-
-
         cm = metrics.confusion_matrix(target_all, predicted_all)
         print("\nConfsusion metrics: \n{}".format(cm))
+
+        self.test(epoch)
 

@@ -65,7 +65,7 @@ def get_data(files):
     print("mel: {}, nv: {}, bcc:{}, akiec:{},bkl:{},df:{}, vasc:{}".format(*counts))
     return np.concatenate([mel,nv,bcc,akiec,bkl,df,vasc],axis=0)
 def get_train_data():
-    files=glob.glob(os.path.join(data_dir,'Train_512/**/**.jpg'))
+    files=glob.glob(os.path.join(data_dir,'Train_512_all/**/**.jpg'))
     data = []
     mel = []
     nv = []
@@ -187,17 +187,17 @@ def get_data_loader(batch_size):
     # train_loader = torch.utils.data.DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True,
     #                                            sampler=sampler, num_workers=args.workers, pin_memory=True)
 
-    class_sample_count = np.repeat(0,num_classes)  # dataset has 10 class-1 samples, 1 class-2 samples, etc.
-
-    for train_data_row in train_Data:
-        index = int(train_data_row[1])
-        class_sample_count[index]=class_sample_count[index]+1
-    class_sample_count=class_sample_count/len(train_Data)
-    weights =  torch.Tensor(class_sample_count)
-    sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(train_Data))
+    # class_sample_count = np.repeat(0,num_classes)  # dataset has 10 class-1 samples, 1 class-2 samples, etc.
+    #
+    # for train_data_row in train_Data:
+    #     index = int(train_data_row[1])
+    #     class_sample_count[index]=class_sample_count[index]+1
+    # class_sample_count=class_sample_count/len(train_Data)
+    # weights =  torch.Tensor(class_sample_count)
+    # sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(train_Data))
 
     trainloader = torch.utils.data.DataLoader(train_data_set,
-                                              num_workers=2,batch_size=batch_size,sampler=sampler)
+                                              num_workers=2,batch_size=batch_size)
     valloader = torch.utils.data.DataLoader(validation_data_set, batch_size=batch_size, shuffle=False,
                                               num_workers=2)
     return (trainloader, valloader)
