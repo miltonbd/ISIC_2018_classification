@@ -92,21 +92,20 @@ def augment(images):
         save_augs(JPEG_dir, anno_dir, idx_i, aug_images[i], aug_bb, imgid + "_" + str(idx_i))
 
 def image_aug():
-    pass
-    # train_dataset = get_train_data()
-    # train_dataset_aug=np.repeat(train_dataset,5,axis=0)
-    # train_data_set = DatasetReader(train_dataset_aug, "train")
-    # trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=50,shuffle=True)
-    # threads=[]
-    # for batch_idx, (data, targets) in enumerate(trainloader):
-    #     print(data.size())
-    #     # save_augs(JPEG_dir,anno_dir,idx_i,aug_images,aug_bb)
-    #     t = threading.Thread(target=augment, args=(data[0], data[1], batch_idx))
-    #     threads.append(t)
-    #     t.start()
-    #     time.sleep(.01)
-    #
-    # for t in threads:
-    #     t.join()
+    train_dataset = get_train_data()
+    train_dataset_aug=np.repeat(train_dataset,5,axis=0)
+    train_data_set = DatasetReader(train_dataset_aug, "train")
+    trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=50,shuffle=True)
+    threads=[]
+    for batch_idx, (data, targets) in enumerate(trainloader):
+        print(data.size())
+        # save_augs(JPEG_dir,anno_dir,idx_i,aug_images,aug_bb)
+        t = threading.Thread(target=augment, args=(data[0], data[1], batch_idx))
+        threads.append(t)
+        t.start()
+        time.sleep(.01)
 
-# image_aug()
+    for t in threads:
+        t.join()
+
+image_aug()

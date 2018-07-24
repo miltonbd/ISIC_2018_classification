@@ -85,7 +85,7 @@ def add_additional_data():
     move aditional data to Train_256 class specific folder.
     """
     additional_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/aditional_training_data"
-    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_512"
+    save_dir="/media/milton/ssd1/research/competitions/ISIC_2018_data/data/Train_512_all"
     additonal_dirs=glob.glob(os.path.join(additional_dir,"*"))
     for dirname in additonal_dirs:
         class_name=dirname.split('/')[-1]
@@ -156,7 +156,8 @@ def resize_train_from_original():
 
 
 if __name__ == '__main__':
-    pass
+    add_additional_data()
+
     # train_test_split()
     # resize_train_from_original()
     # test_data = glob.glob(

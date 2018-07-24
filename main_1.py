@@ -4,7 +4,6 @@ gpu=1
 #os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
 from classifier import Classifier
 from torch import optim
-from augment_data import augment_images
 from model_loader import *
 from loss_loader import *
 from torch.optim import lr_scheduler
@@ -24,7 +23,7 @@ use command line to run the training.
     8. adversarial training, use crosssentropy, focal loss
     9. train atleast 20 epoch.
     10.BGR to RGB
-    11.     
+    11. subtract imagenet mean and divide by sd     
 """
 
 def get_loss_function(classifier):
@@ -55,9 +54,8 @@ class ModelDetails(object):
         self.model=freeze_all_weighs_except_last_layer(model)
         self.model_name_str=model_name
         self.batch_size=32
-        self.epochs = 200
+        self.epochs = 500
         self.logs_dir  = "logs/{}/{}".format(gpu,self.model_name_str)
-        self.augment_images = augment_images
         self.dataset_loader=get_data_loader(self.batch_size)
         self.get_loss_function = get_loss_function
         self.get_optimizer = get_optimizer
