@@ -164,8 +164,8 @@ class Classifier(object):
             if gpu == None:
                 csv__format = 'res/result_{}_epoch_{}_valloss_{:.3f}.csv'.format(type,epoch,self.val_loss)
             else:
-                csv__format = 'res/result_gpu_{},{}_epoch_{}.csv'.format(gpu,type,epoch)
-
+                csv__format = 'res/result_gpu_{}_{}_epoch_{}.csv'.format(gpu,type,epoch)
+            create_dir_if_not_exists('res')
             save_to_file(csv__format, scores_for_upload)
             print("File saved:{}".format(csv__format))
 

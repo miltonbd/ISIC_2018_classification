@@ -1,7 +1,7 @@
 import  os
-gpu=1
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
+gpu=0
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
 from classifier import Classifier
 from torch import optim
 from model_loader import *
@@ -30,7 +30,7 @@ def get_loss_function(classifier):
     return get_cross_entropy(classifier)
 
 def get_model(gpu):
-    return get_senet_model(gpu)
+    return get_pnas_large_model(gpu)
 
 def get_optimizer(model_trainer):
     momentum = 0.7
@@ -39,9 +39,9 @@ def get_optimizer(model_trainer):
     # model_trainer.writer.add_scalar("epsilon", epsilon)
 
     params=filter(lambda p: p.requires_grad, model_trainer.model.parameters())
-    # optimizer = optim.Adam(params,
-    #                             lr=0.0001)
-    optimizer = torch.optim.SGD(params, lr=0.0001, momentum=0.0001)
+    optimizer = optim.Adam(params,
+                                lr=0.0001)
+    # optimizer = torch.optim.SGD(params, lr=0.0001, momentum=0.0001)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')  # set up scheduler
 
     #todo SGD
@@ -60,7 +60,7 @@ class ModelDetails(object):
         self.get_loss_function = get_loss_function
         self.get_optimizer = get_optimizer
         self.dataset=data_set_name
-        self.weight_freeze_epochs=1
+        self.weight_freeze_epochs=4
 
 def start_training(gpu):
     model_details=ModelDetails(gpu)
@@ -68,12 +68,12 @@ def start_training(gpu):
     clasifier.load_data()
     clasifier.load_model()
     for epoch in range(clasifier.start_epoch, clasifier.start_epoch + model_details.epochs):
-        # if epoch < model_details.weight_freeze_epochs:
-        #     freeze_all_weighs_except_last_layer(model_details.model)
+        if epoch < model_details.weight_freeze_epochs:
+            freeze_all_weighs_except_last_layer(model_details.model)
         # else:
-
-        # if epoch >5:
-        #     unfreeze_all_weights(model_details.model)
+        #
+        # if epoch >1:
+        #     freeze_percentage_weights(clasifier.model, 0.3)
         try:
           clasifier.train(epoch)
           # clasifier.validate(epoch)

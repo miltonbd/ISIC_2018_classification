@@ -187,21 +187,7 @@ def get_data_loader(batch_size):
     # train_loader = torch.utils.data.DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True,
     #                                            sampler=sampler, num_workers=args.workers, pin_memory=True)
 
-    class_sample_count = np.repeat(0,num_classes)  # dataset has 10 class-1 samples, 1 class-2 samples, etc.
-    train_Data = get_train_data()
-    for train_data_row in train_Data:
-        index = int(train_data_row[1])
-        class_sample_count[index]=class_sample_count[index]+1
-    class_sample_count=class_sample_count/len(train_Data)
-    class_sample_count=1/class_sample_count
-
-    weights = []
-    for train_Data_row in train_Data:
-        weight=class_sample_count[int(train_data_row[1])]
-        weights.append(weight)
-    weights=torch.Tensor(weights)
-    sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
-    trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=batch_size, sampler=sampler)
+    trainloader = torch.utils.data.DataLoader(train_data_set, batch_size=batch_size, shuffle=True)
 
 
     valloader = torch.utils.data.DataLoader(validation_data_set, batch_size=batch_size, shuffle=False,
