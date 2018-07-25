@@ -57,7 +57,7 @@ class Classifier(object):
         model_name_str = model_details.model_name_str
         print('\n==> using model {}'.format(model_name_str))
         self.model_name_str="{}".format(model_name_str)
-        self.best_saved_model_name = './checkpoint/{}_best_ckpt.t7'.format(self.model_name_str)
+        self.best_saved_model_name = './checkpoint/{}/{}_best_ckpt.t7'.format(model_details.gpu,self.model_name_str)
         print(self.best_saved_model_name)
         model = model_details.model
 
@@ -74,7 +74,7 @@ class Classifier(object):
             model.load_state_dict(checkpoint['model'].state_dict())
             self.best_acc = checkpoint['acc']
             self.start_epoch = checkpoint['epoch']+1
-            print('==> Resuming Successfully from checkpoint with Accuracy {}..'.format(self.best_acc))
+            print('==> Resuming Successfully from checkpoint from epoch {}..'.format(self.start_epoch))
 
         except Exception as e:
             print(e)
@@ -161,19 +161,21 @@ class Classifier(object):
                     j += 1
                     progress_bar(batch_idx,len(loader_for_upload),"{} creating submission file".format(type))
             gpu = self.model_details.gpu
-            if gpu == None:
-                csv__format = 'res/result_{}_epoch_{}_valloss_{:.3f}.csv'.format(type,epoch,self.val_loss)
-            else:
-                csv__format = 'res/result_gpu_{}_{}_epoch_{}.csv'.format(gpu,type,epoch)
-            create_dir_if_not_exists('res')
+            # if gpu == None:
+            #     csv__format = 'res_{}/result_{}_epoch_{}_valloss_{:.3f}.csv'.format(gpu,type,epoch,self.val_loss)
+            # else:
+            model_name_str = self.model_details.model_name_str
+            csv__format = 'res_{}/result_gpu_{}_{}_epoch_{}.csv'.format(model_name_str,gpu,type,epoch)
+            create_dir_if_not_exists(os.path.dirname(csv__format))
             save_to_file(csv__format, scores_for_upload)
             print("File saved:{}".format(csv__format))
 
     def test(self, epoch):
         model = self.model
         model.eval()
+        gpu = self.model_details.gpu
 
-        epoch_saved_model_name = './checkpoint/{}_epoch_{}_ckpt.t7'.format(self.model_name_str, epoch)
+        epoch_saved_model_name = './checkpoint/{}/{}_epoch_{}_ckpt.t7'.format(gpu, self.model_name_str, epoch)
 
         self.save_model(100, epoch,epoch_saved_model_name)
         test_loader=get_test_loader_for_upload(self.model_details.batch_size)

@@ -1,10 +1,9 @@
 import  os
 gpu=0
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
 from classifier import Classifier
 from torch import optim
-from augment_data import augment_images
 from model_loader import *
 from loss_loader import *
 from torch.optim import lr_scheduler
@@ -24,7 +23,7 @@ use command line to run the training.
     8. adversarial training, use crosssentropy, focal loss
     9. train atleast 20 epoch.
     10.BGR to RGB
-    11.     
+    11. subtract imagenet mean and divide by sd     
 """
 
 def get_loss_function(classifier):
@@ -40,9 +39,9 @@ def get_optimizer(model_trainer):
     # model_trainer.writer.add_scalar("epsilon", epsilon)
 
     params=filter(lambda p: p.requires_grad, model_trainer.model.parameters())
-    # optimizer = optim.Adam(params,
-    #                            lr=0.0001)
-    optimizer = torch.optim.SGD(params, lr=0.0001, momentum=momentum)
+    optimizer = optim.Adam(params,
+                                lr=0.001)
+    # optimizer = torch.optim.SGD(params, lr=0.0001, momentum=0.0001)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')  # set up scheduler
 
     #todo SGD
@@ -52,17 +51,16 @@ class ModelDetails(object):
     def __init__(self,gpu=None):
         self.gpu=gpu
         model, model_name = get_model(gpu)
-        self.model = model
-        self.model_name_str = model_name
-        self.batch_size=8
-        self.epochs = 200
+        self.model=unfreeze_all_weights(model)
+        self.model_name_str=model_name
+        self.batch_size=12
+        self.epochs = 500
         self.logs_dir  = "logs/{}/{}".format(gpu,self.model_name_str)
-        self.augment_images = augment_images
         self.dataset_loader=get_data_loader(self.batch_size)
         self.get_loss_function = get_loss_function
         self.get_optimizer = get_optimizer
         self.dataset=data_set_name
-        self.weight_freeze_epochs=1
+        self.weight_freeze_epochs=2
 
 def start_training(gpu):
     model_details=ModelDetails(gpu)
@@ -70,13 +68,14 @@ def start_training(gpu):
     clasifier.load_data()
     clasifier.load_model()
     for epoch in range(clasifier.start_epoch, clasifier.start_epoch + model_details.epochs):
-        if epoch == model_details.weight_freeze_epochs:
-            freeze_percentage_weights(model_details.model,.8)
-        # if epoch >5:
-        #     unfreeze_all_weights(model_details.model)
+        if epoch < model_details.weight_freeze_epochs:
+            freeze_all_weighs_except_last_layer(model_details.model)
+        else:
+            unfreeze_all_weights(model_details.model)
         try:
           clasifier.train(epoch)
-          clasifier.validate(epoch)
+          # clasifier.validate(epoch)
+          clasifier.test(epoch)
         except KeyboardInterrupt:
           clasifier.test(epoch)
           break;

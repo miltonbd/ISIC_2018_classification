@@ -1,5 +1,5 @@
 import  os
-gpu=0
+gpu=1
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
 from classifier import Classifier
@@ -53,14 +53,14 @@ class ModelDetails(object):
         model, model_name = get_model(gpu)
         self.model=freeze_all_weighs_except_last_layer(model)
         self.model_name_str=model_name
-        self.batch_size=32
+        self.batch_size=4
         self.epochs = 500
         self.logs_dir  = "logs/{}/{}".format(gpu,self.model_name_str)
         self.dataset_loader=get_data_loader(self.batch_size)
         self.get_loss_function = get_loss_function
         self.get_optimizer = get_optimizer
         self.dataset=data_set_name
-        self.weight_freeze_epochs=4
+        self.weight_freeze_epochs=2
 
 def start_training(gpu):
     model_details=ModelDetails(gpu)
@@ -70,8 +70,9 @@ def start_training(gpu):
     for epoch in range(clasifier.start_epoch, clasifier.start_epoch + model_details.epochs):
         if epoch < model_details.weight_freeze_epochs:
             freeze_all_weighs_except_last_layer(model_details.model)
-        # else:
-        #
+        else:
+            unfreeze_all_weights(model_details.model)
+
         # if epoch >1:
         #     freeze_percentage_weights(clasifier.model, 0.3)
         try:
